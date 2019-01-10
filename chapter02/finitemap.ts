@@ -5,6 +5,8 @@ Unordered set and unordered map functional data structures.
 These structures use the binary tree (tree.ts) to implement
 an unordered set and map.
 
+This program is a solution to exercise 2.6
+
 */
 
 import { raise } from './list';
@@ -27,7 +29,7 @@ export const key = <S, T>(kvp: KeyValuePair<S, T>): S => <S>kvp((x: S, y: T): S 
 export const valueof = <S, T>(kvp: KeyValuePair<S, T>): T => <T>kvp((x: S, y: T): T => y);
 
 export const get = <S, T>(M: FiniteMap<S, T>, k: S): T =>
-    (M === null ? raise('Not found.')
+    (M === null ? raise('NotFound')
         : (key(value(M)) < k ? get(left(M), k)
             : (key(value(M)) > k ? get(right(M), k)
                 : valueof(value(M)))));

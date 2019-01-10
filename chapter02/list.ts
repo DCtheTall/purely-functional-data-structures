@@ -19,7 +19,7 @@ export const tail = <T>(L: List<T>): List<T> => <List<T>>(L((x, L) => L));
 export const cons = <T>(e: T, L: List<T>): List<T> => f => f(e, L);
 
 export const concat = <T>(A: List<T>, B: List<T>): List<T> =>
-    (A === null ? B : concat(tail(A), cons(head(A), B)));
+    (A === null ? B : cons(head(A), concat(tail(A), B)));
 
 export const update = <T>(L: List<T>, i: number, y: T): List<T> =>
     (L === null ?
@@ -28,6 +28,7 @@ export const update = <T>(L: List<T>, i: number, y: T): List<T> =>
             cons(y, tail<T>(L))
             : cons(head(L), update(tail(L), i - 1, y))));
 
+// Solution for exercise 2.1
 export const suffixes = <T>(L: List<T>) =>
     (L === null ?
         cons(null, null)

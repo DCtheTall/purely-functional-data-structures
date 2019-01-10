@@ -23,24 +23,54 @@ export const left = <S>(T: TreeNode<S>) =>
     (<TreeNode<S>>T((l: TreeNode<S>, v: S, r: TreeNode<S>) => l));
 
 export const value = <S>(T: TreeNode<S>) =>
-    (T === null ? raise('Empty tree')
+    (T === null ? raise('EmptyTree')
         : (<S>T((l: TreeNode<S>, v: S, r: TreeNode<S>) => v)));
 
 export const right = <S>(T: TreeNode<S>): TreeNode<S> =>
     (<TreeNode<S>>T((l: TreeNode<S>, v: S, r: TreeNode<S>) => r));
 
-export const member = <S>(T: TreeNode<S>, x: S): boolean =>
-    (T === null ? false
-        : (x < value(T) ?
-            member(left<S>(T), x)
+export const member = <S>(x: S, T: TreeNode<S>): boolean =>
+    (T !== null &&
+        (x < value(T) ?
+            member(x, left(T))
             : (x > value(T) ?
-                member(right<S>(T), x)
+                member(x, right(T))
                 : true)));
 
-export const insert = <S>(T: TreeNode<S>, x: S): TreeNode<S> =>
+export const insert = <S>(x: S, T: TreeNode<S>): TreeNode<S> =>
     (T === null ? <TreeNode<S>>(f => f(null, x, null))
         : (x < value(T) ?
-            createTreeNode(insert(left(T), x), value(T), right(T))
+            createTreeNode(insert(x, left(T)), value(T), right(T))
             : (x > value(T) ?
-                createTreeNode(left(T), value(T), insert(right(T), x))
+                createTreeNode(left(T), value(T), insert(x, right(T)))
                 : T)));
+
+// Solution for exercise 2.2
+export const member2 = <S>(x: S, T: TreeNode<S>): boolean => {
+    if (T === null) return false;
+    let helper = (y: S, Tr: TreeNode<S>) =>
+        (Tr === null ?
+            (x === y)
+            : (x <= value(Tr) ?
+                helper(value(Tr), left(Tr))
+                : helper(y, right(Tr))));
+    return helper(value(T), T);
+}
+
+// Solution for exercise 2.3
+export const insert2 = <S>(x: S, T: TreeNode<S>): TreeNode<S> => {
+    try {
+        let helper = (Tr: TreeNode<S>): TreeNode<S> =>
+            (Tr === null ?
+                createTreeNode(null, x, null)
+                : (x < value(Tr) ?
+                    helper(left(Tr))
+                    : (x > value(Tr) ?
+                        helper(right(Tr))
+                        : raise('SameValue'))));
+        return helper(T);
+    } catch (err) {
+        if (err.message != 'SameValue') throw err;
+        return T;
+    }
+};
