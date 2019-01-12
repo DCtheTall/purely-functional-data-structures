@@ -70,7 +70,13 @@ export const insert2 = <S>(x: S, T: TreeNode<S>): TreeNode<S> => {
                         : raise('SameValue'))));
         return helper(T);
     } catch (err) {
-        if (err.message != 'SameValue') throw err;
+        if (err.message !== 'SameValue') throw err;
         return T;
     }
 };
+
+// Solution to exercise 2.5
+export const complete = <S>(value: S, height: number): TreeNode<S> =>
+    (height === 0 ? null
+        : createTreeNode(
+            complete(value, height - 1), value, complete(value, height - 1)));
