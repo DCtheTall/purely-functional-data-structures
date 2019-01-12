@@ -10,7 +10,7 @@ This program is a solution to exercise 2.6
 */
 
 import { raise } from './list';
-import { TreeNode, left, right, value } from './tree';
+import { TreeNode, left, right, nodeValue } from './tree';
 
 export type KeyValuePair<S, T> = (f: Selector<S, T>) => (S|T);
 
@@ -30,14 +30,14 @@ export const valueof = <S, T>(kvp: KeyValuePair<S, T>): T => <T>kvp((x: S, y: T)
 
 export const get = <S, T>(M: FiniteMap<S, T>, k: S): T =>
     (M === null ? raise('NotFound')
-        : (key(value(M)) < k ? get(left(M), k)
-            : (key(value(M)) > k ? get(right(M), k)
-                : valueof(value(M)))));
+        : (key(nodeValue(M)) < k ? get(left(M), k)
+            : (key(nodeValue(M)) > k ? get(right(M), k)
+                : valueof(nodeValue(M)))));
 
 export const set = <S, T>(M: FiniteMap<S, T>, k: S, val: T): FiniteMap<S, T> =>
     (M === null ? <FiniteMap<S, T>>(f => f(null, createKvp(k, val), null))
-        : (k < key(value(M)) ?
-            createMapElem(set(left(M), k, val), value(M), right(M))
-            : (k > key(value(M)) ?
-                createMapElem(left(M), value(M), set(right(M), k, val))
+        : (k < key(nodeValue(M)) ?
+            createMapElem(set(left(M), k, val), nodeValue(M), right(M))
+            : (k > key(nodeValue(M)) ?
+                createMapElem(left(M), nodeValue(M), set(right(M), k, val))
                 : createMapElem(left(M), createKvp(k, val), right(M)))));
