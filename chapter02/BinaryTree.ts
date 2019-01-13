@@ -29,7 +29,7 @@ export namespace BinaryTree {
 
     export const nodeValue = <S>(T: Node<S>) =>
         (isEmpty(T) ? Util.raise('EmptyTree')
-            : (<S>T((l: Node<S>, v: S, r: Node<S>) => v)));
+        : (<S>T((l: Node<S>, v: S, r: Node<S>) => v)));
 
     export const right = <S>(T: Node<S>): Node<S> =>
         (<Node<S>>T((l: Node<S>, v: S, r: Node<S>) => r));
@@ -38,9 +38,9 @@ export namespace BinaryTree {
         (isEmpty(T) &&
             (x < nodeValue(T) ?
                 member(x, left(T))
-                : (x > nodeValue(T) ?
-                    member(x, right(T))
-                : true)));
+            : (x > nodeValue(T) ?
+                member(x, right(T))
+            : true)));
 
     export const insert = <S>(x: S, T: Node<S>): Node<S> =>
         (isEmpty(T) ? <Node<S>>(f => f(EmptyTree, x, EmptyTree))
@@ -56,9 +56,9 @@ export namespace BinaryTree {
         let helper = (y: S, Tr: Node<S>): boolean =>
             (isEmpty(Tr) ?
                 (x === y)
-                : (x <= nodeValue(Tr) ?
-                    helper(nodeValue(Tr), left(Tr))
-                : helper(y, right(Tr))));
+            : (x <= nodeValue(Tr) ?
+                helper(nodeValue(Tr), left(Tr))
+            : helper(y, right(Tr))));
         return helper(nodeValue(T), T);
     }
 
@@ -68,11 +68,11 @@ export namespace BinaryTree {
             let helper = (Tr: Node<S>): Node<S> =>
                 (isEmpty(Tr) ?
                     createTreeNode(EmptyTree, x, EmptyTree)
-                    : (x < nodeValue(Tr) ?
-                        helper(left(Tr))
-                    : (x > nodeValue(Tr) ?
-                        helper(right(Tr))
-                    : Util.raise('SameValue'))));
+                : (x < nodeValue(Tr) ?
+                    helper(left(Tr))
+                : (x > nodeValue(Tr) ?
+                    helper(right(Tr))
+                : Util.raise('SameValue'))));
             return helper(T);
         } catch (err) {
             if (err.message !== 'SameValue') throw err;
@@ -100,7 +100,8 @@ export namespace BinaryTree {
 
     // Solution to exercise 2.5a
     export const complete = <S>(value: S, height: number): Node<S> =>
-        (height === 0 ? EmptyTree
+        (height === 0 ?
+            EmptyTree
         : createTreeNode(
             complete(value, height - 1),
             value,

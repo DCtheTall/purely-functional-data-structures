@@ -31,13 +31,13 @@ export namespace List {
             Util.raise('Index error')
             : (i === 0 ?
                 cons(y, tail<T>(L))
-                : cons(head(L), update(tail(L), i - 1, y))));
+            : cons(head(L), update(tail(L), i - 1, y))));
 
     // Solution for exercise 2.1
     export const suffixes = <T>(L: List<T>) =>
         (isEmpty(L) ?
             cons(EmptyList, EmptyList)
-            : cons(L, suffixes(tail(L))));
+        : cons(L, suffixes(tail(L))));
 
     export const length = <T>(L: List<T>): number =>
         (isEmpty(L) ? 0 : 1 + length(tail(L)));
@@ -46,9 +46,9 @@ export namespace List {
     // index "ub"
     export const slice = <T>(L: List<T>, lb: number, ub: number): List<T> =>
         (isEmpty(L) ? EmptyList
-            : (lb > 0 ?
-                slice(tail(L), lb - 1, ub - 1)
-            : (ub > 0 ?
-                cons(head(L), slice(tail(L), 0, ub - 1))
-            : EmptyList)));
+        : (lb > 0 ?
+            slice(tail(L), lb - 1, ub - 1)
+        : (ub > 0 ?
+            cons(head(L), slice(tail(L), 0, ub - 1))
+        : EmptyList)));
 }

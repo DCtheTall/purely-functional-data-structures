@@ -30,14 +30,14 @@ export namespace LeftistHeap {
     export const makeHeap = <T>(x: T, lh: Heap<T>, rh: Heap<T>): Heap<T> =>
         (rank(lh) >= rank(rh) ?
             <Heap<T>>(h => h(rank(rh) + 1, x, lh, rh))
-            : <Heap<T>>(h => h(rank(lh) + 1, x, rh, lh)));
+        : <Heap<T>>(h => h(rank(lh) + 1, x, rh, lh)));
 
     export const merge = <T>(a: Heap<T>, b: Heap<T>): Heap<T> =>
         (isEmpty(a) ? b
-            : (isEmpty(b) ? a
-                : (findMin(a) <= findMin(b) ?
-                    makeHeap(findMin(a), left(a), merge(right(a), b))
-                    : makeHeap(findMin(b), left(b), merge(a, right(b))))));
+        : (isEmpty(b) ? a
+        : (findMin(a) <= findMin(b) ?
+            makeHeap(findMin(a), left(a), merge(right(a), b))
+        : makeHeap(findMin(b), left(b), merge(a, right(b))))));
 
     export const insert = <T>(x: T, h: Heap<T>): Heap<T> =>
         merge(<Heap<T>>(f => f(1, x, EmptyHeap, EmptyHeap)), h);
@@ -46,28 +46,28 @@ export namespace LeftistHeap {
     export const insert2 = <T>(x: T, H: Heap<T>): Heap<T> =>
         (isEmpty(H) ?
             <Heap<T>>(h => h(1, x, EmptyHeap, EmptyHeap))
-            : x < findMin(H) ?
-                makeHeap(x, H, EmptyHeap)
-                : makeHeap(findMin(H), left(H), insert2(x, right(H))));
+        : x < findMin(H) ?
+            makeHeap(x, H, EmptyHeap)
+        : makeHeap(findMin(H), left(H), insert2(x, right(H))));
 
     const mapToHeapSingletons = <T>(L: List.List<T>): List.List<Heap<T>> =>
         (List.isEmpty(L) ? List.EmptyList
-            : List.cons(
-                <Heap<T>>(h => h(1, List.head(L), EmptyHeap, EmptyHeap)),
-                mapToHeapSingletons(List.tail(L))));
+        : List.cons(
+            <Heap<T>>(h => h(1, List.head(L), EmptyHeap, EmptyHeap)),
+            mapToHeapSingletons(List.tail(L))));
 
     const linearHeapMerge = <T>(L: List.List<Heap<T>>): Heap<T> =>
         (List.isEmpty(L) ? EmptyHeap
-            : merge(List.head(L),
-                linearHeapMerge(List.tail(L))));
+        : merge(List.head(L),
+            linearHeapMerge(List.tail(L))));
 
     const logNHeapMerge = <T>(L: List.List<Heap<T>>): Heap<T> =>
         (List.length(L) <= 2 ?
             linearHeapMerge(L)
-            : merge(
-                logNHeapMerge(List.slice(L, 0, Math.floor(List.length(L) / 2))),
-                logNHeapMerge(
-                    List.slice(L, Math.floor(List.length(L) / 2), List.length(L)))));
+        : merge(
+            logNHeapMerge(List.slice(L, 0, Math.floor(List.length(L) / 2))),
+            logNHeapMerge(
+                List.slice(L, Math.floor(List.length(L) / 2), List.length(L)))));
 
     export const fromList = <T>(L: List.List<T>): Heap<T> =>
         logNHeapMerge(mapToHeapSingletons(L));

@@ -31,9 +31,9 @@ export namespace FiniteMap {
 
     export const get = <S, T>(M: FiniteMap<S, T>, k: S): T =>
         (BinaryTree.isEmpty(M) ? Util.raise('NotFound')
-            : (key(BinaryTree.nodeValue(M)) < k ? get(BinaryTree.left(M), k)
-            : (key(BinaryTree.nodeValue(M)) > k ? get(BinaryTree.right(M), k)
-            : valueof(BinaryTree.nodeValue(M)))));
+        : (key(BinaryTree.nodeValue(M)) < k ? get(BinaryTree.left(M), k)
+        : (key(BinaryTree.nodeValue(M)) > k ? get(BinaryTree.right(M), k)
+        : valueof(BinaryTree.nodeValue(M)))));
 
     export const set = <S, T>(M: FiniteMap<S, T>, k: S, val: T): FiniteMap<S, T> =>
         (BinaryTree.isEmpty(M) ?
