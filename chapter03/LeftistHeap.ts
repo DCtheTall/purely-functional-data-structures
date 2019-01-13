@@ -8,9 +8,9 @@ import { List } from '../chapter02/List';
 
 
 export namespace LeftistHeap {
-    export type Heap<T> = (f: HeapSelector<T>) => (number | T | Heap<T>);
+    export type Heap<T> = (f: Selector<T>) => (number | T | Heap<T>);
 
-    export type HeapSelector<T> =
+    export type Selector<T> =
         (rank: number, value: T, left: Heap<T>, right: Heap<T>) => (number | T | Heap<T>);
 
     export const EmptyHeap = <Heap<any>>(null);

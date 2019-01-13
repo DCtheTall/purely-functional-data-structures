@@ -9,9 +9,9 @@ Here an empty list is represented by the null object.
 import { Util } from '../util';
 
 export namespace List {
-    export type List<T> = (f: ListSelector<T>) => (T | List<T>);
+    export type List<T> = (f: Selector<T>) => (T | List<T>);
 
-    export type ListSelector<T> = (e: T, L: List<T>) => (T | List<T>);
+    export type Selector<T> = (e: T, L: List<T>) => (T | List<T>);
 
     export const EmptyList = <List<any>>(null);
 
@@ -34,10 +34,14 @@ export namespace List {
             : cons(head(L), update(tail(L), i - 1, y))));
 
     // Solution for exercise 2.1
-    export const suffixes = <T>(L: List<T>) =>
-        (isEmpty(L) ?
-            cons(EmptyList, EmptyList)
-        : cons(L, suffixes(tail(L))));
+    export function suffixes<T>(L: List<T>): List<List<T>> {
+        let helper =
+            <(_: List<T>) => List<List<T>>>Util.opt((L: List<T>) =>
+                (isEmpty(L) ?
+                    cons(EmptyList, EmptyList)
+                : Util.optRecurse(() => cons(L, suffixes(tail(L))))));
+        return helper(L);
+    }
 
     export const length = <T>(L: List<T>): number =>
         (isEmpty(L) ? 0 : 1 + length(tail(L)));
@@ -52,3 +56,9 @@ export namespace List {
             cons(head(L), slice(tail(L), 0, ub - 1))
         : EmptyList)));
 }
+
+let L = <List.List<number>>List.EmptyList;
+for (let i = 0; i < 1e4; i++) {
+    L = List.cons(i, L);
+}
+List.suffixes(L);

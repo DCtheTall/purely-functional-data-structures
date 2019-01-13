@@ -11,9 +11,9 @@ object.
 import { Util } from '../util';
 
 export namespace BinaryTree {
-    export type Node<T> = (f: TreeSelector<T>) => (T | Node<T>);
+    export type Node<T> = (f: Selector<T>) => (T | Node<T>);
 
-    export type TreeSelector<T> =
+    export type Selector<T> =
         (left: Node<T>, value: T, right: Node<T>) => (T | Node<T>);
 
     export const EmptyTree = <Node<any>>(null);
