@@ -23,8 +23,14 @@ export namespace List {
 
     export const cons = <T>(e: T, L: List<T>): List<T> => f => f(e, L);
 
-    export const concat = <T>(A: List<T>, B: List<T>): List<T> =>
-        (isEmpty(A) ? B : cons(head(A), concat(tail(A), B)));
+    export function concat<T>(A: List<T>, B: List<T>): List<T> {
+        let helper = Util.opt(
+            (A: List<T>, B: List<T>) =>
+                (isEmpty(A) ? B
+                : Util.optRecurse(
+                    () => cons(head(A), concat(tail(A), B)))));
+        return helper(A, B);
+    }
 
     export const update = <T>(L: List<T>, i: number, y: T): List<T> =>
         (isEmpty(L) ?
@@ -35,8 +41,8 @@ export namespace List {
 
     // Solution for exercise 2.1
     export function suffixes<T>(L: List<T>): List<List<T>> {
-        let helper =
-            <(_: List<T>) => List<List<T>>>Util.opt((L: List<T>) =>
+        let helper = Util.opt(
+            (L: List<T>) =>
                 (isEmpty(L) ?
                     cons(EmptyList, EmptyList)
                 : Util.optRecurse(() => cons(L, suffixes(tail(L))))));
@@ -56,9 +62,3 @@ export namespace List {
             cons(head(L), slice(tail(L), 0, ub - 1))
         : EmptyList)));
 }
-
-let L = <List.List<number>>List.EmptyList;
-for (let i = 0; i < 1e4; i++) {
-    L = List.cons(i, L);
-}
-List.suffixes(L);
