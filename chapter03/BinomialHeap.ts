@@ -13,19 +13,13 @@ export namespace BinomialHeap {
     type Selector<T> = (rank: number, value: T, children: List.List<Node<T>>) =>
         (number | T | List.List<Node<T>>);
 
-    export type Heap<T> = List.List<Node<T>>;
-
-    export const EmptyHeap = List.EmptyList;
-
-    export const isEmpty = (H: Heap<any>): boolean => (H === EmptyHeap);
-
     export const rank = <T>(t: Node<T>) => <number>t((r, v, c) => r);
 
     export const valueof = <T>(t: Node<T>) => <T>t((r, v, c) => v);
 
     export const children = <T>(t: Node<T>) => <Heap<T>>t((r, v, c) => c);
 
-    export const createNode = <T>(r: number, v: T, c: Heap<T>): Node<T> =>
+    export const createNode = <T>(r: number, v: T, c: Heap<T>) =>
         <Node<T>>(f => f(r, v, c));
 
     // Link two nodes of equal rank.
@@ -35,6 +29,12 @@ export namespace BinomialHeap {
         : (valueof(A) <= valueof(B) ?
             createNode(rank(A) + 1, valueof(A), List.cons(B, children(A)))
         : createNode(rank(A) + 1, valueof(B), List.cons(A, children(B)))));
+
+    export type Heap<T> = List.List<Node<T>>;
+
+    export const EmptyHeap = List.EmptyList;
+
+    export const isEmpty = (H: Heap<any>): boolean => (H === EmptyHeap);
 
     export const root = <T>(H: Heap<T>): Node<T> => List.head(H);
 
@@ -83,4 +83,75 @@ export namespace BinomialHeap {
             return List.head(H);
         return val;
     };
+
+    // Solution to exercise 3.6
+
+    // Node type without the rank
+    export type RanklessNode<T> = (f: RanklessSelector<T>) =>
+        (T | List.List<RanklessNode<T>>);
+
+    export type RanklessSelector<T> = (value: T, children: List.List<RanklessNode<T>>) =>
+        (T | List.List<RanklessNode<T>>);
+
+    export const ranklessValueof = <T>(t: RanklessNode<T>) => <T>t((v, c) => v);
+
+    export const ranklessChildren = <T>(t: RanklessNode<T>) =>
+        <List.List<RanklessNode<T>>>t((v, c) => c);
+
+    export const createRanklessNode =
+        <T>(val: T, c: List.List<RanklessNode<T>>) => <RanklessNode<T>>(f => f(val, c));
+
+    // Merge two nodes, we can only assume they are equal rank.
+    export const ranklessLink =
+        <T>(A: RanklessNode<T>, B: RanklessNode<T>): RanklessNode<T> =>
+            (ranklessValueof(A) <= ranklessValueof(B) ?
+                createRanklessNode(
+                    ranklessValueof(A),
+                    List.cons(B, ranklessChildren(A)))
+            : createRanklessNode(
+                ranklessValueof(B),
+                List.cons(A, ranklessChildren(B))));
+
+    // This is the type that will be stored in the heap
+    export type RankNode<T> = (f: RankNodeSelector<T>) => (number | RanklessNode<T>);
+
+    export type RankNodeSelector<T> =
+        (r: number, node: RanklessNode<T>) => (number | RanklessNode<T>);
+
+    export const rank2 = <T>(t: RankNode<T>) => <number>t((r, n) => r);
+
+    export const getRanklessNode = <T>(t: RankNode<T>) =>
+        <RanklessNode<T>>t((r, n) => n);
+
+    export type RankHeap<T> = List.List<RankNode<T>>;
+
+    export const createRankNode = <T>(r: number, n: RanklessNode<T>) =>
+        <RankNode<T>>(f => f(r, n));
+
+    export const EmptyRankHeap = List.EmptyList;
+
+    export const isEmptyRankHeap =
+        <T>(rh: RankHeap<T>): boolean => (rh === EmptyRankHeap);
+
+    export const rankRoot = <T>(rh: RankHeap<T>): RankNode<T> => List.head(rh);
+
+    export const rankHeapInsertTree =
+        <T>(t: RankNode<T>, rh: RankHeap<T>): RankHeap<T> =>
+            (isEmptyRankHeap(rh) ?
+                List.cons(t, EmptyRankHeap)
+            : (rank2(t) < rank2(rankRoot(rh)) ?
+                List.cons(t, rh)
+            : rankHeapInsertTree(
+                createRankNode(
+                    rank2(t) + 1,
+                    ranklessLink(getRanklessNode(t), getRanklessNode(rankRoot(rh)))),
+                List.tail(rh))));
+
+    export const rankHeapInsert =
+        <T>(val: T, rh: RankHeap<T>): RankHeap<T> =>
+            rankHeapInsertTree(
+                createRankNode(0, createRanklessNode(val, List.EmptyList)),
+                rh);
+
+    // End exercise 3.6
 }
