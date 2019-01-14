@@ -11,7 +11,7 @@ export namespace Util {
     }
 
     // Tail call optimization
-    export const opt = (f: RecursiveFunction): RecursiveFunction =>
+    export const tailOpt = (f: RecursiveFunction): RecursiveFunction =>
         (...args: any[]) => {
             f = f(...args);
             while (typeof f === 'function' && f['_$$recursive$$__']) f = f();
