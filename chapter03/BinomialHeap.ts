@@ -72,13 +72,14 @@ export namespace BinomialHeap {
         return List.cons(root(val), List.cons(root(H), List.tail(val)));
     };
 
-    export const findMin = <T>(H: Heap<T>): Node<T> => root(removeMinTree(H));
+    // findMin in O(log(N)) time
+    export const logNfindMin = <T>(H: Heap<T>): Node<T> => root(removeMinTree(H));
 
-    // Solution to exercise 3.5.
-    export const findMin2 = <T>(H: Heap<T>): Node<T> => {
+    // Solution to exercise 3.5. O(log(N)) time.
+    export const logNfindMin2 = <T>(H: Heap<T>): Node<T> => {
         if (isEmpty(H)) Util.raise('EmptyHeap');
         if (List.length(H) === 1) return root(H);
-        let val: Node<T> = findMin2(List.tail(H));
+        let val: Node<T> = logNfindMin2(List.tail(H));
         if (valueof(List.head(H)) < valueof(val))
             return List.head(H);
         return val;
@@ -154,4 +155,6 @@ export namespace BinomialHeap {
                 rh);
 
     // End exercise 3.6
+
+    // Exercise 3.7: Implement BinomialHeap which can do findMin in O(1)
 }
