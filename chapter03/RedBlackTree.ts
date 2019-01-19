@@ -1,6 +1,11 @@
 /*
 
-Functional red-black tree implementation.
+Functional red-black tree implementation
+with tail call optimization.
+
+Tail cal optimization allows trees with
+thousands of elements to be built and stored
+without call stack overflow.
 
 */
 
@@ -9,9 +14,9 @@ import { Util } from '../util';
 export namespace RedBlack {
     export type Color = 'Red' | 'Black';
 
-    export const Red = <Color>'Red';
+    export const Red: Color = 'Red';
 
-    export const Black = <Color>'Black';
+    export const Black: Color = 'Black';
 
     export type Node<T> = (f: Selector<T>) => (Color | T | Node<T>);
 
@@ -19,11 +24,12 @@ export namespace RedBlack {
 
     export const isEmpty = (t: Node<any>): boolean => (t === Empty);
 
-    export const createNode = <T>(col: Color, val: T, lt: Node<T>, rt: Node<T>) =>
-        <Node<T>>(f => f(col, val, lt, rt));
+    export const createNode =
+        <T>(col: Color, val: T, lt: Node<T>, rt: Node<T>): Node<T> =>
+             f => f(col, val, lt, rt);
 
     export type Selector<T> =
-        (color: Color, value: T, left: Node<T>, right: Node<T>) => (Color | T | Node<T>);
+        (col: Color, value: T, left: Node<T>, right: Node<T>) => (Color | T | Node<T>);
 
     export const color = <T>(t: Node<T>) =>
         <Color>(isEmpty(t) ? Black : t((c, v, l, r) => c));
@@ -82,16 +88,19 @@ export namespace RedBlack {
 
     // Tail optimized recursive insert function
     export const insert = <T>(val: T, t: Node<T>): Node<T> => {
-        let ins = Util.tailOpt((s: Node<T>): Node<T> =>
-            (isEmpty(s) ?
-                createNode(Red, val, Empty, Empty)
-            : (val < valueof(t) ?
-                <Node<T>>Util.optRecurse(() =>
-                    balance(color(t), valueof(t), ins(left(t)), right(t)))
-            : (val > valueof(t) ?
-                <Node<T>>Util.optRecurse(() =>
-                    balance(color(t), valueof(t), left(t), ins(right(t))))
-            : s))));
+        let ins = (s: Node<T>): Node<T> => {
+            let helper = Util.tailOpt((s: Node<T>) =>
+                (isEmpty(s) ?
+                    createNode(Red, val, Empty, Empty)
+                : (val < valueof(s) ?
+                    <Node<T>>Util.optRecurse(() =>
+                        balance(color(s), valueof(s), ins(left(s)), right(s)))
+                : (val > valueof(s) ?
+                    <Node<T>>Util.optRecurse(() =>
+                        balance(color(s), valueof(s), left(s), ins(right(s))))
+                : s))));
+            return helper(s);
+        };
         let tmp = ins(t);
         return createNode(Black, valueof(tmp), left(tmp), right(tmp));
     };
