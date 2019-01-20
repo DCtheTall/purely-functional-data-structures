@@ -106,4 +106,18 @@ export namespace BinaryTree {
             complete(value, height - 1),
             value,
             complete(value, height - 1)));
+
+    // Solution to exercise 2.5b
+    export const balanced = <T>(value: T, m: number): Node<T> =>
+        (m === 0 ?
+            EmptyTree
+        : (m % 2 === 0 ?
+            createTreeNode(
+                balanced(value, (m  / 2)),
+                value,
+                balanced(value, (m / 2) - 1))
+        : createTreeNode(
+            balanced(value, (m - 1) / 2),
+            value,
+            balanced(value, (m - 1) / 2))));
 }
