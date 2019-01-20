@@ -50,6 +50,7 @@ export namespace LeftistHeap {
             makeHeap(x, H, EmptyHeap)
         : makeHeap(findMin(H), left(H), insert2(x, right(H))));
 
+    // Following functions are a solution to
     const mapToHeapSingletons = <T>(L: List.List<T>): List.List<Heap<T>> =>
         (List.isEmpty(L) ? List.EmptyList
         : List.cons(

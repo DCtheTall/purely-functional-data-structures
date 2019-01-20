@@ -99,7 +99,7 @@ export namespace BinaryTree {
     }
 
     // Solution to exercise 2.5a
-    export const complete = <S>(value: S, height: number): Node<S> =>
+    export const complete = <T>(value: T, height: number): Node<T> =>
         (height === 0 ?
             EmptyTree
         : createTreeNode(

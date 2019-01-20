@@ -40,11 +40,14 @@ export namespace RedBlack {
 
     export const right = <T>(t: Node<T>) => <Node<T>>t((c, v, l, r) => r);
 
-    export const member = <T>(e: T, t: Node<T>): boolean =>
-        (isEmpty(t) ? false
-        : (e < valueof(t) ? member(e, left(t))
-        : (e > valueof(t) ? member(e, right(t))
-        : true)));
+    export const member = <T>(e: T, t: Node<T>): boolean => {
+        let helper = Util.tailOpt((e: T, t: Node<T>) =>
+            (isEmpty(t) ? false
+            : (e < valueof(t) ? Util.optRecurse(() => member(e, left(t)))
+            : (e > valueof(t) ? Util.optRecurse(() => member(e, right(t)))
+            : true))));
+        return helper(e, t);
+    };
 
     export const balance = <T>(col: Color, val: T, lt: Node<T>, rt: Node<T>): Node<T> =>
         (col === Red ? createNode(Red, val, lt, rt)

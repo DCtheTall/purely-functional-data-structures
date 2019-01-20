@@ -80,13 +80,14 @@ export namespace BinomialHeap {
         if (isEmpty(H)) Util.raise('EmptyHeap');
         if (List.length(H) === 1) return root(H);
         let val: Node<T> = logNfindMin2(List.tail(H));
-        if (valueof(List.head(H)) < valueof(val))
-            return List.head(H);
+        if (valueof(root(H)) < valueof(val))
+            return root(H);
         return val;
     };
+}
 
-    // Solution to exercise 3.6
-
+// Solution to exercise 3.6
+export namespace RankBinomialHeap {
     // Node type without the rank
     export type RanklessNode<T> = (f: RanklessSelector<T>) =>
         (T | List.List<RanklessNode<T>>);
@@ -119,7 +120,7 @@ export namespace BinomialHeap {
     export type RankNodeSelector<T> =
         (r: number, node: RanklessNode<T>) => (number | RanklessNode<T>);
 
-    export const rank2 = <T>(t: RankNode<T>) => <number>t((r, n) => r);
+    export const rank = <T>(t: RankNode<T>) => <number>t((r, n) => r);
 
     export const getRanklessNode = <T>(t: RankNode<T>) =>
         <RanklessNode<T>>t((r, n) => n);
@@ -134,18 +135,20 @@ export namespace BinomialHeap {
     export const isEmptyRankHeap =
         <T>(rh: RankHeap<T>): boolean => (rh === EmptyRankHeap);
 
-    export const rankRoot = <T>(rh: RankHeap<T>): RankNode<T> => List.head(rh);
+    export const root = <T>(rh: RankHeap<T>): RankNode<T> => List.head(rh);
 
     export const rankHeapInsertTree =
         <T>(t: RankNode<T>, rh: RankHeap<T>): RankHeap<T> =>
             (isEmptyRankHeap(rh) ?
                 List.cons(t, EmptyRankHeap)
-            : (rank2(t) < rank2(rankRoot(rh)) ?
+            : (rank(t) < rank(root(rh)) ?
                 List.cons(t, rh)
             : rankHeapInsertTree(
                 createRankNode(
-                    rank2(t) + 1,
-                    ranklessLink(getRanklessNode(t), getRanklessNode(rankRoot(rh)))),
+                    rank(t) + 1,
+                    ranklessLink(
+                        getRanklessNode(t),
+                        getRanklessNode(root(rh)))),
                 List.tail(rh))));
 
     export const rankHeapInsert =
@@ -154,7 +157,28 @@ export namespace BinomialHeap {
                 createRankNode(0, createRanklessNode(val, List.EmptyList)),
                 rh);
 
-    // End exercise 3.6
+    export const removeMinRankTree = <T>(rh: RankHeap<T>): List.List<RankNode<T>> => {
+        if (isEmptyRankHeap(rh)) Util.raise('EmptyHeap');
+        if (List.length(rh) === 1) return rh;
+        let val: List.List<RankNode<T>> = removeMinRankTree(List.tail(rh));
+        if (ranklessValueof(getRanklessNode(root(rh))) <
+            ranklessValueof(getRanklessNode(root(val))))
+                return List.cons(root(rh), List.tail(rh));
+        return List.cons(root(val), List.cons(root(rh), List.tail(val)));
+    };
 
-    // Exercise 3.7: Implement BinomialHeap which can do findMin in O(1)
+    export const logNfindMin = <T>(rh: RankHeap<T>): RankNode<T> =>
+        root(removeMinRankTree(rh));
+
+    export const logNfindMin2 = <T>(rh: RankHeap<T>): RankNode<T> => {
+        if (isEmptyRankHeap(rh)) Util.raise('EmptyHeap');
+        if (List.length(rh) === 1) return root(rh);
+        let val: RankNode<T> = logNfindMin2(List.tail(rh));
+        if (ranklessValueof(getRanklessNode(root(rh))) <
+            ranklessValueof(getRanklessNode(val)))
+                return root(rh);
+        return val;
+    };
 }
+
+// Exercise 3.7: Implement BinomialHeap which can do findMin in O(1)
