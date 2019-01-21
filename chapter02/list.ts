@@ -24,7 +24,7 @@ export namespace List {
     export const cons = <T>(e: T, L: List<T>): List<T> => f => f(e, L);
 
     export function concat<T>(A: List<T>, B: List<T>): List<T> {
-        let helper = Util.tailOpt(
+        let helper = Util.optimize(
             (A: List<T>, B: List<T>) =>
                 (isEmpty(A) ? B
                 : Util.optRecurse(
@@ -41,7 +41,7 @@ export namespace List {
 
     // Solution for exercise 2.1
     export function suffixes<T>(L: List<T>): List<List<T>> {
-        let helper = Util.tailOpt(
+        let helper = Util.optimize(
             (L: List<T>) =>
                 (isEmpty(L) ?
                     cons(EmptyList, EmptyList)

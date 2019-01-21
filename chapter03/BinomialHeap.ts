@@ -41,9 +41,11 @@ export namespace BinomialHeap {
     // Insert a binomial tree into the heap.
     export const insertTree = <T>(t: Node<T>, H: Heap<T>): Heap<T> =>
         (isEmpty(H) ? List.cons(t, EmptyHeap)
-        : rank(t) < rank(root(H)) ?
+        : (rank(t) < rank(root(H)) ?
             List.cons(t, H)
-        : insertTree(link(t, root(H)), List.tail(H)));
+        : (rank(t) > rank(root(H)) ?
+            List.cons(root(H), insertTree(t, List.tail(H)))
+        : insertTree(link(t, root(H)), List.tail(H)))));
 
     // Insert a value into the heap.
     export const insert = <T>(val: T, H: Heap<T>): Heap<T> =>
@@ -143,13 +145,17 @@ export namespace RankBinomialHeap {
                 List.cons(t, EmptyRankHeap)
             : (rank(t) < rank(root(rh)) ?
                 List.cons(t, rh)
+            : (rank(t) > rank(root(rh)) ?
+                List.cons(
+                    root(rh),
+                    rankHeapInsertTree(t, List.tail(rh)))
             : rankHeapInsertTree(
                 createRankNode(
                     rank(t) + 1,
                     ranklessLink(
                         getRanklessNode(t),
                         getRanklessNode(root(rh)))),
-                List.tail(rh))));
+                List.tail(rh)))));
 
     export const rankHeapInsert =
         <T>(val: T, rh: RankHeap<T>): RankHeap<T> =>

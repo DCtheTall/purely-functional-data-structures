@@ -41,7 +41,7 @@ export namespace RedBlack {
     export const right = <T>(t: Node<T>) => <Node<T>>t((c, v, l, r) => r);
 
     export const member = <T>(e: T, t: Node<T>): boolean => {
-        let helper = Util.tailOpt((e: T, t: Node<T>) =>
+        let helper = Util.optimize((e: T, t: Node<T>) =>
             (isEmpty(t) ? false
             : (e < valueof(t) ? Util.optRecurse(() => member(e, left(t)))
             : (e > valueof(t) ? Util.optRecurse(() => member(e, right(t)))
@@ -50,7 +50,8 @@ export namespace RedBlack {
     };
 
     export const balance = <T>(col: Color, val: T, lt: Node<T>, rt: Node<T>): Node<T> =>
-        (col === Red ? createNode(Red, val, lt, rt)
+        (col === Red ?
+            createNode(Red, val, lt, rt)
         : (color(lt) === Red ?
             (color(left(lt)) === Red ?
                 createNode(
@@ -92,7 +93,7 @@ export namespace RedBlack {
     // Tail optimized recursive insert function
     export const insert = <T>(val: T, t: Node<T>): Node<T> => {
         let ins = (s: Node<T>): Node<T> => {
-            let helper = Util.tailOpt((s: Node<T>) =>
+            let helper = Util.optimize((s: Node<T>) =>
                 (isEmpty(s) ?
                     createNode(Red, val, Empty, Empty)
                 : (val < valueof(s) ?
