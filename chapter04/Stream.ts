@@ -20,11 +20,13 @@ export namespace Stream {
     const isEmpty = <T>(S: Stream<T>) => (Util.force(S) === EmptyCell);
 
     const head = <T>(S: Stream<T>) => {
+        if (isEmpty(S)) Util.raise('EmptyStream');
         let s = Util.force(S);
         return <T>s((h, t) => h);
     };
 
     const tail = <T>(S: Stream<T>) => {
+        if (isEmpty(S)) Util.raise('EmptyStream');
         let s = Util.force(S);
         return <Stream<T>>s((h, t) => t);
     };
@@ -63,6 +65,9 @@ export namespace Stream {
                     () => Util.force(drop(n - 1, tail(s)))))));
             return helper(n, s);
         });
+
+    // Solution to exercise 4.2
+    // export const sort = ...
 }
 
 
