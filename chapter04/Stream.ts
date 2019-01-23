@@ -70,7 +70,7 @@ export namespace Stream {
 
     // 2nd implementation of drop using a helper function
     export const drop2 = <T>(n: number, s: Stream<T>): SuspendedStream<T> =>
-        Util.lazy(() => {
+        Util.lazy<Stream<T>>(() => {
             let dropHelper = (n: number, s: Stream<T>): Stream<T> => {
                 let helper = Util.optimize<Stream<T>>((n: number, s: Stream<T>) =>
                     (isEmpty(s) ? EmptyStream

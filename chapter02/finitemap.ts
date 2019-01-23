@@ -13,17 +13,21 @@ import { BinaryTree } from './BinaryTree';
 import { Util } from '../util';
 
 export namespace FiniteMap {
-    export type KeyValuePair<S, T> = (f: KvpSelector<S, T>) => (S | T);
+    type KeyValuePair<S, T> = (f: Selector<S, T>) => (S | T);
 
-    export type KvpSelector<S, T> = (key: S, value: T) => (S | T);
+    type Selector<S, T> = (key: S, value: T) => (S | T);
 
     export type FiniteMap<S, T> = BinaryTree.Node<KeyValuePair<S, T>>;
 
-    export const createMapElem =
+    export const EmptyMap = BinaryTree.EmptyTree;
+
+    export const isEmpty = BinaryTree.isEmpty;
+
+    const createMapElem =
         <S, T>(left: FiniteMap<S, T>, val: KeyValuePair<S, T>, right: FiniteMap<S, T>): FiniteMap<S, T> =>
             f => f(left, val, right);
 
-    export const createKvp = <S, T>(k: S, val: T): KeyValuePair<S, T> => (f => f(k, val));
+    const createKvp = <S, T>(k: S, val: T): KeyValuePair<S, T> => (f => f(k, val));
 
     export const key = <S, T>(kvp: KeyValuePair<S, T>): S => <S>kvp((x: S, y: T): S => x);
 

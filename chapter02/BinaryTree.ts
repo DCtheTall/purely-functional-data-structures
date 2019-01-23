@@ -13,14 +13,14 @@ import { Util } from '../util';
 export namespace BinaryTree {
     export type Node<T> = (f: Selector<T>) => (T | Node<T>);
 
-    export type Selector<T> =
+    type Selector<T> =
         (left: Node<T>, value: T, right: Node<T>) => (T | Node<T>);
 
     export const EmptyTree = <Node<any>>(null);
 
     export const isEmpty = <T>(t: Node<T>): boolean => (t === EmptyTree);
 
-    export const createTreeNode =
+    const createTreeNode =
         <T>(left: Node<T>, val: T, right: Node<T>): Node<T> =>
             f => f(left, val, right);
 
@@ -43,12 +43,13 @@ export namespace BinaryTree {
             : true)));
 
     export const insert = <S>(x: S, T: Node<S>): Node<S> =>
-        (isEmpty(T) ? <Node<S>>(f => f(EmptyTree, x, EmptyTree))
-            : (x < nodeValue(T) ?
-                createTreeNode(insert(x, left(T)), nodeValue(T), right(T))
-            : (x > nodeValue(T) ?
-                createTreeNode(left(T), nodeValue(T), insert(x, right(T)))
-            : T)));
+        (isEmpty(T) ?
+            createTreeNode(EmptyTree, x, EmptyTree)
+        : (x < nodeValue(T) ?
+            createTreeNode(insert(x, left(T)), nodeValue(T), right(T))
+        : (x > nodeValue(T) ?
+            createTreeNode(left(T), nodeValue(T), insert(x, right(T)))
+        : T)));
 
     // Solution for exercise 2.2
     export const member2 = <S>(x: S, T: Node<S>): boolean => {
@@ -89,7 +90,7 @@ export namespace BinaryTree {
                         Util.raise('SameValue')
                     : createTreeNode(EmptyTree, x, EmptyTree))
                 : (x <= nodeValue(Tr) ?
-                        helper(nodeValue(Tr), left(Tr))
+                    helper(nodeValue(Tr), left(Tr))
                 : helper(y, right(Tr))));
             return helper(nodeValue(T), T);
         } catch (err) {

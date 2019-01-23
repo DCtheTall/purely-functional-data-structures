@@ -7,25 +7,122 @@ Functional binomial heap implementation
 import { List } from '../chapter02/List';
 import { Util } from '../util';
 
-export namespace BinomialHeap {
-    export type Node<T> = (f: Selector<T>) => (number | T | Heap<T>);
+export namespace MinBinomialHeap {
+    type Node<T> = (f: NodeSelector<T>) => (number | T | Heap<T>);
 
-    export type Heap<T> = List.List<Node<T>>;
+    type NodeSelector<T> = (rank: number, value: T, children: Heap<T>) =>
+        (number | T | Heap<T>);
+
+    type Heap<T> = List.List<Node<T>>;
+
+    export type MinHeap<T> = (f: HeapSelector<T>) => (T | Heap<T>);
+
+    type HeapSelector<T> = (min: T, H: Heap<T>) => (T | Heap<T>);
+
+    const rank = <T>(t: Node<T>) => <number>t((r, v, c) => r);
+
+    const valueof = <T>(t: Node<T>) => <T>t((r, v, c) => v);
+
+    const children = <T>(t: Node<T>) => <Heap<T>>t((r, v, c) => c);
+
+    const createNode = <T>(r: number, v: T, c: Heap<T>) =>
+        <Node<T>>(f => f(r, v, c));
+
+    const min = <T>(M: MinHeap<T>) => <T>M((m, H) => m);
+
+    const heap = <T>(M: MinHeap<T>) => <Heap<T>>M((m, H) => H);
+
+    const root = <T>(H: Heap<T>): Node<T> => List.head(H);
+
+    // Link two nodes of equal rank.
+    const link = <T>(A: Node<T>, B: Node<T>): Node<T> =>
+        (rank(A) !== rank(B) ?
+            Util.raise('NotEqualRank')
+        : (valueof(A) <= valueof(B) ?
+            createNode(rank(A) + 1, valueof(A), List.cons(B, children(A)))
+        : createNode(rank(A) + 1, valueof(B), List.cons(A, children(B)))));
+
+    const createMinHeap = <T>(m: T, H: Heap<T>) => <MinHeap<T>>(M => M(m, H));
+
+    export const EmptyMinHeap = createMinHeap(Infinity, <Heap<any>>List.EmptyList);
+
+    export const isEmpty = <T>(M: MinHeap<T>) => (M === EmptyMinHeap);
+
+    const insertTreeIntoHeap = <T>(t: Node<T>, H: Heap<T>) => {
+        let helper = Util.optimize<Heap<T>>((t: Node<T>, H: Heap<T>) =>
+            (rank(t) < rank(root(H)) ?
+                List.cons(t, H)
+            : (rank(t) > rank(root(H)) ?
+                Util.optRecurse(
+                    () => List.cons(root(H), insertTreeIntoHeap(t, List.tail(H))))
+            : Util.optRecurse(
+                () => insertTreeIntoHeap(link(t, root(H)), List.tail(H))))));
+        return helper(t, H);
+    };
+
+    const insertTree = <T>(t: Node<T>, M: MinHeap<T>): MinHeap<T> =>
+        (isEmpty(M) ?
+            createMinHeap(valueof(t), List.cons(t, List.EmptyList))
+        : (valueof(t) < min(M) ?
+            createMinHeap(valueof(t), insertTreeIntoHeap(t, heap(M)))
+        : createMinHeap(min(M), insertTreeIntoHeap(t, heap(M)))));
+
+    export const insert = <T>(val: T, M: MinHeap<T>): MinHeap<T> =>
+        insertTree(createNode(0, val, List.EmptyList), M);
+
+    const mergeHeaps = <T>(A: Heap<T>, B: Heap<T>): Heap<T> => {
+        let helper = Util.optimize<Heap<T>>((A: Heap<T>, B: Heap<T>) =>
+            (List.isEmpty(A) ? B
+            : (List.isEmpty(B) ? A
+            : (rank(root(A)) < rank(root(B)) ?
+                Util.optRecurse(
+                    () => List.cons(root(A), mergeHeaps(List.tail(A), B)))
+            : (rank(root(B)) < rank(root(A)) ?
+                Util.optRecurse(
+                    () => List.cons(root(B), mergeHeaps(A, List.tail(B))))
+            : Util.optRecurse(
+                () => insertTreeIntoHeap(
+                    link(root(A), root(B)),
+                    mergeHeaps(List.tail(A), List.tail(B)))))))));
+        return helper(A, B);
+    };
+
+    export const merge = <T>(A: MinHeap<T>, B: MinHeap<T>): MinHeap<T> =>
+        (min(A) < min(B) ? createMinHeap(min(A), mergeHeaps(heap(A), heap(B)))
+        : createMinHeap(min(B), mergeHeaps(heap(A), heap(B))));
+
+    // TODO figure out how to use tail call optimization w this
+    const removeMinTree = <T>(H: Heap<T>): Heap<T> => {
+        if (List.isEmpty(H)) Util.raise('EmptyHeap');
+        if (List.length(H) === 1) return H;
+        let minTree: Heap<T> = removeMinTree(List.tail(H));
+        if (valueof(root(H)) < valueof(root(minTree)))
+            return List.cons(root(H), List.tail(H));
+        return List.cons(root(minTree), List.cons(root(H), List.tail(minTree)));
+    };
+
+    // TODO complete heap implementation
+}
+
+export namespace BinomialHeap {
+    type Node<T> = (f: Selector<T>) => (number | T | Heap<T>);
 
     type Selector<T> = (rank: number, value: T, children: Heap<T>) =>
         (number | T | Heap<T>);
 
-    export const rank = <T>(t: Node<T>) => <number>t((r, v, c) => r);
+    export type Heap<T> = List.List<Node<T>>;
 
-    export const valueof = <T>(t: Node<T>) => <T>t((r, v, c) => v);
+    const rank = <T>(t: Node<T>) => <number>t((r, v, c) => r);
 
-    export const children = <T>(t: Node<T>) => <Heap<T>>t((r, v, c) => c);
+    const valueof = <T>(t: Node<T>) => <T>t((r, v, c) => v);
 
-    export const createNode = <T>(r: number, v: T, c: Heap<T>) =>
+    const children = <T>(t: Node<T>) => <Heap<T>>t((r, v, c) => c);
+
+    const createNode = <T>(r: number, v: T, c: Heap<T>) =>
         <Node<T>>(f => f(r, v, c));
 
     // Link two nodes of equal rank.
-    export const link = <T>(A: Node<T>, B: Node<T>): Node<T> =>
+    const link = <T>(A: Node<T>, B: Node<T>): Node<T> =>
         (rank(A) !== rank(B) ?
             Util.raise('NotEqualRank')
         : (valueof(A) <= valueof(B) ?
@@ -36,10 +133,10 @@ export namespace BinomialHeap {
 
     export const isEmpty = (H: Heap<any>): boolean => (H === EmptyHeap);
 
-    export const root = <T>(H: Heap<T>): Node<T> => List.head(H);
+    const root = <T>(H: Heap<T>): Node<T> => List.head(H);
 
     // Insert a binomial tree into the heap.
-    export const insertTree = <T>(t: Node<T>, H: Heap<T>): Heap<T> =>
+    const insertTree = <T>(t: Node<T>, H: Heap<T>): Heap<T> =>
         (isEmpty(H) ? List.cons(t, EmptyHeap)
         : (rank(t) < rank(root(H)) ?
             List.cons(t, H)
@@ -51,7 +148,7 @@ export namespace BinomialHeap {
     export const insert = <T>(val: T, H: Heap<T>): Heap<T> =>
         insertTree(createNode(0, val, EmptyHeap), H);
 
-    // Merge two heaps.
+    // Merge two heaps in O(log(N)) time
     export const merge = <T>(A: Heap<T>, B: Heap<T>) =>
         (isEmpty(A) ? B
         : (isEmpty(B) ? A
@@ -65,26 +162,34 @@ export namespace BinomialHeap {
 
     // Remove min tree returns a list where the minimum tree in the
     // heap is at the head, and the rest of the heap is the tail.
-    export const removeMinTree = <T>(H: Heap<T>): Heap<T> => {
+    // This function can also be thought of as bringing the min heap
+    // to the head of the heap list.
+    const removeMinTree = <T>(H: Heap<T>): Heap<T> => {
         if (isEmpty(H)) Util.raise('EmptyHeap');
         if (List.length(H) === 1) return H;
-        let val: Heap<T> = removeMinTree(List.tail(H));
-        if (valueof(root(H)) < valueof(root(val)))
+        let minTree: Heap<T> = removeMinTree(List.tail(H));
+        if (valueof(root(H)) < valueof(root(minTree)))
             return List.cons(root(H), List.tail(H));
-        return List.cons(root(val), List.cons(root(H), List.tail(val)));
+        return List.cons(root(minTree), List.cons(root(H), List.tail(minTree)));
     };
 
     // findMin in O(log(N)) time
-    export const logNfindMin = <T>(H: Heap<T>): Node<T> => root(removeMinTree(H));
+    export const findMin = <T>(H: Heap<T>): Node<T> => root(removeMinTree(H));
 
     // Solution to exercise 3.5. O(log(N)) time.
-    export const logNfindMin2 = <T>(H: Heap<T>): Node<T> => {
+    export const findMin2 = <T>(H: Heap<T>): Node<T> => {
         if (isEmpty(H)) Util.raise('EmptyHeap');
         if (List.length(H) === 1) return root(H);
-        let val: Node<T> = logNfindMin2(List.tail(H));
+        let val: Node<T> = findMin2(List.tail(H));
         if (valueof(root(H)) < valueof(val))
             return root(H);
         return val;
+    };
+
+    // Delete the minimum element in O(log(N)) time
+    export const deleteMin = <T>(H: Heap<T>): Heap<T> => {
+        let minTree = removeMinTree(H);
+        return merge(children(List.head(minTree)), List.tail(minTree));
     };
 }
 

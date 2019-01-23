@@ -11,7 +11,7 @@ import { Util } from '../util';
 export namespace List {
     export type List<T> = (f: Selector<T>) => (T | List<T>);
 
-    export type Selector<T> = (e: T, L: List<T>) => (T | List<T>);
+    type Selector<T> = (e: T, L: List<T>) => (T | List<T>);
 
     export const EmptyList = <List<any>>(null);
 
