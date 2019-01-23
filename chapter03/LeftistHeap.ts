@@ -42,6 +42,8 @@ export namespace LeftistHeap {
     export const insert = <T>(x: T, h: Heap<T>): Heap<T> =>
         merge(<Heap<T>>(f => f(1, x, EmptyHeap, EmptyHeap)), h);
 
+    export const deleteMin = <T>(h: Heap<T>): Heap<T> => merge(left(h), right(h));
+
     // Solution to exercise 3.2
     export const insert2 = <T>(x: T, H: Heap<T>): Heap<T> =>
         (isEmpty(H) ?

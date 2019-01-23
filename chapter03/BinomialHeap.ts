@@ -8,10 +8,12 @@ import { List } from '../chapter02/List';
 import { Util } from '../util';
 
 export namespace BinomialHeap {
-    export type Node<T> = (f: Selector<T>) => (number | T | List.List<Node<T>>);
+    export type Node<T> = (f: Selector<T>) => (number | T | Heap<T>);
 
-    type Selector<T> = (rank: number, value: T, children: List.List<Node<T>>) =>
-        (number | T | List.List<Node<T>>);
+    export type Heap<T> = List.List<Node<T>>;
+
+    type Selector<T> = (rank: number, value: T, children: Heap<T>) =>
+        (number | T | Heap<T>);
 
     export const rank = <T>(t: Node<T>) => <number>t((r, v, c) => r);
 
@@ -29,8 +31,6 @@ export namespace BinomialHeap {
         : (valueof(A) <= valueof(B) ?
             createNode(rank(A) + 1, valueof(A), List.cons(B, children(A)))
         : createNode(rank(A) + 1, valueof(B), List.cons(A, children(B)))));
-
-    export type Heap<T> = List.List<Node<T>>;
 
     export const EmptyHeap = List.EmptyList;
 
@@ -65,10 +65,10 @@ export namespace BinomialHeap {
 
     // Remove min tree returns a list where the minimum tree in the
     // heap is at the head, and the rest of the heap is the tail.
-    export const removeMinTree = <T>(H: Heap<T>): List.List<Node<T>> => {
+    export const removeMinTree = <T>(H: Heap<T>): Heap<T> => {
         if (isEmpty(H)) Util.raise('EmptyHeap');
         if (List.length(H) === 1) return H;
-        let val: List.List<Node<T>> = removeMinTree(List.tail(H));
+        let val: Heap<T> = removeMinTree(List.tail(H));
         if (valueof(root(H)) < valueof(root(val)))
             return List.cons(root(H), List.tail(H));
         return List.cons(root(val), List.cons(root(H), List.tail(val)));
