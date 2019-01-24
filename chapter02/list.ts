@@ -49,8 +49,13 @@ export namespace List {
         return helper(L);
     }
 
-    export const length = <T>(L: List<T>): number =>
-        (isEmpty(L) ? 0 : 1 + length(tail(L)));
+    // Tail call optimized length function
+    export const length = <T>(L: List<T>): number => {
+        let helper = Util.optimize<number>((L: List<T>) =>
+            (isEmpty(L) ? 0
+            : Util.optRecurse<number>(() => 1 + length(tail(L)))));
+        return <number>helper(L);
+    };
 
     // Slice from index "lb" (head is 0, recall this is LIFO) up to but not including
     // index "ub"
@@ -62,3 +67,8 @@ export namespace List {
             cons(head(L), slice(tail(L), 0, ub - 1))
         : EmptyList)));
 }
+
+let L1 = List.cons(1, List.cons(2, List.EmptyList));
+let L2 = List.cons(3, List.cons(4, List.EmptyList));
+let L = List.concat(L1, L2);
+console.log(List.head(L));
