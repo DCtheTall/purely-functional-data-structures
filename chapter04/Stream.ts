@@ -13,8 +13,6 @@ export namespace Stream {
 
     export type Stream<T> = Util.LazyFunction<StreamCell<T>>;
 
-    type SuspendedStream<T> = Util.LazyFunction<Stream<T>>;
-
     const EmptyCell: StreamCell<any> = null;
 
     export const EmptyStream: Stream<any> = Util.lazy(() => EmptyCell);
@@ -37,40 +35,40 @@ export namespace Stream {
         Util.lazy((): StreamCell<T> => (f: Selector<T>) => f(e, S));
 
     // Concat two streams
-    export const concat = <T>(s: Stream<T>, t: Stream<T>): SuspendedStream<T> =>
-        Util.lazy<Stream<T>>(() => {
+    export const concat = <T>(s: Stream<T>, t: Stream<T>): Stream<T> =>
+        Util.lazy<StreamCell<T>>(() => {
             let helper = Util.optimize<Stream<T>>((s: Stream<T>, t: Stream<T>): Stream<T> =>
                 (isEmpty(s) ? t
                 : <Stream<T>>Util.optRecurse(
-                    () => cons(head(s), Util.force(concat(tail(s), t))))));
-            return <Stream<T>>helper(s, t);
+                    () => cons(head(s), concat(tail(s), t)))));
+            return Util.force(<Stream<T>>helper(s, t));
         });
 
     // Take the first n elements in the stream
-    export const take = <T>(n: number, s: Stream<T>): SuspendedStream<T> =>
-        Util.lazy<Stream<T>>(() => {
+    export const take = <T>(n: number, s: Stream<T>): Stream<T> =>
+        Util.lazy<StreamCell<T>>(() => {
             let helper = Util.optimize<Stream<T>>((n: number, s: Stream<T>): Stream<T> =>
                 (isEmpty(s) ? EmptyStream
                 : (n === 0 ? EmptyStream
                 : <Stream<T>>Util.optRecurse(
-                    () => cons(head(s), <Stream<T>>Util.force(take(n - 1, tail(s))))))));
-            return <Stream<T>>helper(n, s);
+                    () => cons(head(s), <Stream<T>>take(n - 1, tail(s)))))));
+            return Util.force(<Stream<T>>helper(n, s));
         });
 
     // Drop the first n elements in the stream
-    export const drop = <T>(n: number, s: Stream<T>): SuspendedStream<T> =>
-        Util.lazy<Stream<T>>(() => {
+    export const drop = <T>(n: number, s: Stream<T>): Stream<T> =>
+        Util.lazy<StreamCell<T>>(() => {
             let helper = Util.optimize<Stream<T>>((n: number, s: Stream<T>): Stream<T> =>
                 (isEmpty(s) ? EmptyStream
                 : (n === 0 ? s
                 : <Stream<T>>Util.optRecurse(
                     () => Util.force(drop(n - 1, tail(s)))))));
-            return <Stream<T>>helper(n, s);
+            return Util.force(<Stream<T>>helper(n, s));
         });
 
     // 2nd implementation of drop using a helper function
-    export const drop2 = <T>(n: number, s: Stream<T>): SuspendedStream<T> =>
-        Util.lazy<Stream<T>>(() => {
+    export const drop2 = <T>(n: number, s: Stream<T>): Stream<T> =>
+        Util.lazy<StreamCell<T>>(() => {
             let dropHelper = (n: number, s: Stream<T>): Stream<T> => {
                 let helper = Util.optimize<Stream<T>>((n: number, s: Stream<T>) =>
                     (isEmpty(s) ? EmptyStream
@@ -79,11 +77,34 @@ export namespace Stream {
                         () => dropHelper(n - 1, tail(s))))));
                 return <Stream<T>>helper(n, s);
             };
-            return dropHelper(n, s);
+            return Util.force(dropHelper(n, s));
         });
 
     // Solution to exercise 4.2
-    // export const sort = ...
+    // Return the first k unique least elements in the stream
+    export const sort = <T>(k: number, s: Stream<T>): Stream<T> =>
+        Util.lazy<StreamCell<T>>(() => {
+            let findMinAboveLowerBound = Util.optimize<T>((s: Stream<T>, lb: T, cur: T) =>
+                (s === EmptyStream ? cur
+                : (cur === null ?
+                    Util.optRecurse(
+                        () => findMinAboveLowerBound(tail(s), lb, head(s)))
+                : ((cur > head(s)) && ((lb === null) || (head(s) > lb)) ?
+                    Util.optRecurse(
+                        () => findMinAboveLowerBound(tail(s), lb, head(s)))
+                : Util.optRecurse(
+                        () => findMinAboveLowerBound(tail(s), lb, cur))))));
+            let sortHelper = (k: number, s: Stream<T>, lb: T): Stream<T> => {
+                let min = findMinAboveLowerBound(s, lb, null);
+                let helper = Util.optimize<Stream<T>>((k: number, s: Stream<T>, lb: T) =>
+                    (k === 0 ? EmptyStream
+                    : (s === EmptyStream ? EmptyStream
+                    : Util.optRecurse(
+                        () => cons(min, sortHelper(k - 1, s, min))))));
+                return <Stream<T>>helper(k, s, lb);
+            };
+            return Util.force(sortHelper(k, s, null));
+        });
 }
 
 

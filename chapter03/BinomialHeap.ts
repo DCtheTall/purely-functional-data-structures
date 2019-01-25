@@ -7,144 +7,6 @@ Functional binomial heap implementation
 import { List } from '../chapter02/List';
 import { Util } from '../util';
 
-// Solution to exercise 3.8
-export namespace MinBinomialHeap {
-    type Node<T> = (f: NodeSelector<T>) => (number | T | Heap<T>);
-
-    type NodeSelector<T> = (rank: number, value: T, children: Heap<T>) =>
-        (number | T | Heap<T>);
-
-    type Heap<T> = List.List<Node<T>>;
-
-    export type MinHeap<T> = (f: HeapSelector<T>) => (T | Heap<T>);
-
-    type HeapSelector<T> = (min: T, H: Heap<T>) => (T | Heap<T>);
-
-    const rank = <T>(t: Node<T>) => <number>t((r, v, c) => r);
-
-    const valueof = <T>(t: Node<T>) => <T>t((r, v, c) => v);
-
-    const children = <T>(t: Node<T>) => <Heap<T>>t((r, v, c) => c);
-
-    const createNode = <T>(r: number, v: T, c: Heap<T>) =>
-        <Node<T>>(f => f(r, v, c));
-
-    // findMin takes O(1) time, as the exercise specifies
-    const findMin = <T>(M: MinHeap<T>) => <T>M((m, H) => m);
-
-    const heap = <T>(M: MinHeap<T>) => <Heap<T>>M((m, H) => H);
-
-    const root = <T>(H: Heap<T>): Node<T> => List.head(H);
-
-    // Link two nodes of equal rank.
-    const link = <T>(A: Node<T>, B: Node<T>): Node<T> =>
-        (rank(A) !== rank(B) ?
-            Util.raise('NotEqualRank')
-        : (valueof(A) <= valueof(B) ?
-            createNode(rank(A) + 1, valueof(A), List.cons(B, children(A)))
-        : createNode(rank(A) + 1, valueof(B), List.cons(A, children(B)))));
-
-    const createMinHeap = <T>(m: T, H: Heap<T>) => <MinHeap<T>>(M => M(m, H));
-
-    export const EmptyMinHeap = createMinHeap(Infinity, <Heap<any>>List.EmptyList);
-
-    export const isEmpty = <T>(M: MinHeap<T>) => (M === EmptyMinHeap);
-
-    const insertTreeIntoHeap = <T>(t: Node<T>, H: Heap<T>) => {
-        let helper = Util.optimize<Heap<T>>((t: Node<T>, H: Heap<T>) =>
-            (rank(t) < rank(root(H)) ?
-                List.cons(t, H)
-            : (rank(t) > rank(root(H)) ?
-                Util.optRecurse(
-                    () => List.cons(root(H), insertTreeIntoHeap(t, List.tail(H))))
-            : Util.optRecurse(
-                () => insertTreeIntoHeap(link(t, root(H)), List.tail(H))))));
-        return helper(t, H);
-    };
-
-    const insertTree = <T>(t: Node<T>, M: MinHeap<T>): MinHeap<T> =>
-        (isEmpty(M) ?
-            createMinHeap(valueof(t), List.cons(t, List.EmptyList))
-        : (valueof(t) < findMin(M) ?
-            createMinHeap(valueof(t), insertTreeIntoHeap(t, heap(M)))
-        : createMinHeap(findMin(M), insertTreeIntoHeap(t, heap(M)))));
-
-    export const insert = <T>(val: T, M: MinHeap<T>): MinHeap<T> =>
-        insertTree(createNode(0, val, List.EmptyList), M);
-
-    const mergeHeaps = <T>(A: Heap<T>, B: Heap<T>): Heap<T> => {
-        let helper = Util.optimize<Heap<T>>((A: Heap<T>, B: Heap<T>) =>
-            (List.isEmpty(A) ? B
-            : (List.isEmpty(B) ? A
-            : (rank(root(A)) < rank(root(B)) ?
-                Util.optRecurse(
-                    () => List.cons(root(A), mergeHeaps(List.tail(A), B)))
-            : (rank(root(B)) < rank(root(A)) ?
-                Util.optRecurse(
-                    () => List.cons(root(B), mergeHeaps(A, List.tail(B))))
-            : Util.optRecurse(
-                () => insertTreeIntoHeap(
-                    link(root(A), root(B)),
-                    mergeHeaps(List.tail(A), List.tail(B)))))))));
-        return helper(A, B);
-    };
-
-    export const merge = <T>(A: MinHeap<T>, B: MinHeap<T>): MinHeap<T> =>
-        (findMin(A) < findMin(B) ? createMinHeap(findMin(A), mergeHeaps(heap(A), heap(B)))
-        : createMinHeap(findMin(B), mergeHeaps(heap(A), heap(B))));
-
-    // Extract the min tree in O(log(N)) time
-    // Optimized with tail call recursion to allow heaps of unbounded size
-    const removeMinTree = <T>(H: Heap<T>): Heap<T> => {
-        if (List.isEmpty(H)) Util.raise('EmptyHeap');
-        // Recursively find the min using tail recursion
-        // O(log(N)) time
-        let findMinTree = (cur: Node<T>, H: Heap<T>): Node<T> => {
-            let helper = Util.optimize<Node<T>>((cur: Node<T>, H: Heap<T>): Node<T> =>
-                (List.length(H) === 0 ? cur
-                : (valueof(cur) < valueof(root(H)) ?
-                    <Node<T>>Util.optRecurse(() => findMinTree(cur, List.tail(H)))
-                : <Node<T>>Util.optRecurse(() => findMinTree(root(H), List.tail(H))))));
-            return <Node<T>>helper(cur, H);
-        };
-        let minTree = findMinTree(root(H), List.tail(H));
-        // Recursively find the elements on each side
-        // O(log(N)) time
-        let partitionHeap = (L: Heap<T>, R: Heap<T>): List.List<Heap<T>> => {
-            let helper = Util.optimize<List.List<Heap<T>>>(
-                (L: Heap<T>, R: Heap<T>): List.List<Heap<T>> =>
-                    (root(R) === minTree ?
-                        List.cons(L, List.cons(R, List.EmptyList))
-                    : Util.optRecurse(
-                        () => partitionHeap(List.cons(root(R), L), List.tail(R)))));
-            return helper(List.EmptyList, H);
-        };
-        let partitionedHeap = partitionHeap(H, List.EmptyList);
-        // Concat the partitioned heap in O(log(N)) time and return the result
-        // with the min tree
-        return List.cons(minTree, List.concat(
-           List.head(partitionedHeap), List.head(List.tail(partitionedHeap))));
-    };
-
-    // Delete the minimum element in O(log(N)) time
-    export const deleteMin = <T>(M: MinHeap<T>): MinHeap<T> => {
-        let minTreeResult = removeMinTree(heap(M));
-        // If the value of the root of the min tree is the current min
-        // find the new min also in O(log(N)) time
-        if (valueof(List.head(minTreeResult)) === findMin(M))
-            return createMinHeap(
-                valueof(List.head(removeMinTree(List.tail(minTreeResult)))),
-                mergeHeaps(
-                    List.tail(minTreeResult),
-                    children(List.head(minTreeResult))));
-        return createMinHeap(
-            findMin(M),
-            mergeHeaps(
-                List.tail(minTreeResult),
-                children(List.head(minTreeResult))))
-    };
-}
-
 export namespace BinomialHeap {
     type Node<T> = (f: Selector<T>) => (number | T | Heap<T>);
 
@@ -334,3 +196,139 @@ export namespace RankBinomialHeap {
 }
 
 // Exercise 3.7: Implement BinomialHeap which can do findMin in O(1)
+export namespace MinBinomialHeap {
+    type Node<T> = (f: NodeSelector<T>) => (number | T | Heap<T>);
+
+    type NodeSelector<T> = (rank: number, value: T, children: Heap<T>) =>
+        (number | T | Heap<T>);
+
+    type Heap<T> = List.List<Node<T>>;
+
+    export type MinHeap<T> = (f: HeapSelector<T>) => (T | Heap<T>);
+
+    type HeapSelector<T> = (min: T, H: Heap<T>) => (T | Heap<T>);
+
+    const rank = <T>(t: Node<T>) => <number>t((r, v, c) => r);
+
+    const valueof = <T>(t: Node<T>) => <T>t((r, v, c) => v);
+
+    const children = <T>(t: Node<T>) => <Heap<T>>t((r, v, c) => c);
+
+    const createNode = <T>(r: number, v: T, c: Heap<T>) =>
+        <Node<T>>(f => f(r, v, c));
+
+    // findMin takes O(1) time, as the exercise specifies
+    const findMin = <T>(M: MinHeap<T>) => <T>M((m, H) => m);
+
+    const heap = <T>(M: MinHeap<T>) => <Heap<T>>M((m, H) => H);
+
+    const root = <T>(H: Heap<T>): Node<T> => List.head(H);
+
+    // Link two nodes of equal rank.
+    const link = <T>(A: Node<T>, B: Node<T>): Node<T> =>
+        (rank(A) !== rank(B) ?
+            Util.raise('NotEqualRank')
+        : (valueof(A) <= valueof(B) ?
+            createNode(rank(A) + 1, valueof(A), List.cons(B, children(A)))
+        : createNode(rank(A) + 1, valueof(B), List.cons(A, children(B)))));
+
+    const createMinHeap = <T>(m: T, H: Heap<T>) => <MinHeap<T>>(M => M(m, H));
+
+    export const EmptyMinHeap = createMinHeap(Infinity, <Heap<any>>List.EmptyList);
+
+    export const isEmpty = <T>(M: MinHeap<T>) => (M === EmptyMinHeap);
+
+    const insertTreeIntoHeap = <T>(t: Node<T>, H: Heap<T>) => {
+        let helper = Util.optimize<Heap<T>>((t: Node<T>, H: Heap<T>) =>
+            (rank(t) < rank(root(H)) ?
+                List.cons(t, H)
+            : (rank(t) > rank(root(H)) ?
+                Util.optRecurse(
+                    () => List.cons(root(H), insertTreeIntoHeap(t, List.tail(H))))
+            : Util.optRecurse(
+                () => insertTreeIntoHeap(link(t, root(H)), List.tail(H))))));
+        return helper(t, H);
+    };
+
+    const insertTree = <T>(t: Node<T>, M: MinHeap<T>): MinHeap<T> =>
+        (isEmpty(M) ?
+            createMinHeap(valueof(t), List.cons(t, List.EmptyList))
+        : (valueof(t) < findMin(M) ?
+            createMinHeap(valueof(t), insertTreeIntoHeap(t, heap(M)))
+        : createMinHeap(findMin(M), insertTreeIntoHeap(t, heap(M)))));
+
+    export const insert = <T>(val: T, M: MinHeap<T>): MinHeap<T> =>
+        insertTree(createNode(0, val, List.EmptyList), M);
+
+    const mergeHeaps = <T>(A: Heap<T>, B: Heap<T>): Heap<T> => {
+        let helper = Util.optimize<Heap<T>>((A: Heap<T>, B: Heap<T>) =>
+            (List.isEmpty(A) ? B
+            : (List.isEmpty(B) ? A
+            : (rank(root(A)) < rank(root(B)) ?
+                Util.optRecurse(
+                    () => List.cons(root(A), mergeHeaps(List.tail(A), B)))
+            : (rank(root(B)) < rank(root(A)) ?
+                Util.optRecurse(
+                    () => List.cons(root(B), mergeHeaps(A, List.tail(B))))
+            : Util.optRecurse(
+                () => insertTreeIntoHeap(
+                    link(root(A), root(B)),
+                    mergeHeaps(List.tail(A), List.tail(B)))))))));
+        return helper(A, B);
+    };
+
+    export const merge = <T>(A: MinHeap<T>, B: MinHeap<T>): MinHeap<T> =>
+        (findMin(A) < findMin(B) ? createMinHeap(findMin(A), mergeHeaps(heap(A), heap(B)))
+        : createMinHeap(findMin(B), mergeHeaps(heap(A), heap(B))));
+
+    // Extract the min tree in O(log(N)) time
+    // Optimized with tail call recursion to allow heaps of unbounded size
+    const removeMinTree = <T>(H: Heap<T>): Heap<T> => {
+        if (List.isEmpty(H)) Util.raise('EmptyHeap');
+        // Recursively find the min using tail recursion
+        // O(log(N)) time
+        let findMinTree = (cur: Node<T>, H: Heap<T>): Node<T> => {
+            let helper = Util.optimize<Node<T>>((cur: Node<T>, H: Heap<T>): Node<T> =>
+                (List.length(H) === 0 ? cur
+                : (valueof(cur) < valueof(root(H)) ?
+                    <Node<T>>Util.optRecurse(() => findMinTree(cur, List.tail(H)))
+                : <Node<T>>Util.optRecurse(() => findMinTree(root(H), List.tail(H))))));
+            return <Node<T>>helper(cur, H);
+        };
+        let minTree = findMinTree(root(H), List.tail(H));
+        // Recursively find the elements on each side
+        // O(log(N)) time
+        let partitionHeap = (L: Heap<T>, R: Heap<T>): List.List<Heap<T>> => {
+            let helper = Util.optimize<List.List<Heap<T>>>(
+                (L: Heap<T>, R: Heap<T>): List.List<Heap<T>> =>
+                    (root(R) === minTree ?
+                        List.cons(L, List.cons(R, List.EmptyList))
+                    : Util.optRecurse(
+                        () => partitionHeap(List.cons(root(R), L), List.tail(R)))));
+            return helper(List.EmptyList, H);
+        };
+        let partitionedHeap = partitionHeap(H, List.EmptyList);
+        // Concat the partitioned heap in O(log(N)) time and return the result
+        // with the min tree
+        return List.cons(minTree, List.concat(
+           List.head(partitionedHeap), List.head(List.tail(partitionedHeap))));
+    };
+
+    // Delete the minimum element in O(log(N)) time
+    export const deleteMin = <T>(M: MinHeap<T>): MinHeap<T> => {
+        let minTreeResult = removeMinTree(heap(M));
+        // If the value of the root of the min tree is the current min
+        // find the new min also in O(log(N)) time
+        if (valueof(List.head(minTreeResult)) === findMin(M))
+            return createMinHeap(
+                valueof(List.head(removeMinTree(List.tail(minTreeResult)))),
+                mergeHeaps(
+                    List.tail(minTreeResult),
+                    children(List.head(minTreeResult))));
+        return createMinHeap(
+            findMin(M),
+            mergeHeaps(
+                List.tail(minTreeResult),
+                children(List.head(minTreeResult))))
+    };
+}

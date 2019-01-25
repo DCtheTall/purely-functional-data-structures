@@ -17,7 +17,10 @@ export namespace List {
 
     export const isEmpty = <T>(L: List<T>): boolean => (L === EmptyList);
 
-    export const head = <T>(L: List<T>): T => <T>(L((x, L) => x));
+    // Future refactor: wrap selectors in a functor that checks if
+    // the structure is empty before reading it
+    export const head = <T>(L: List<T>): T =>
+        <T>(isEmpty(L) ? Util.raise('EmptyList') : L((x, L) => x));
 
     export const tail = <T>(L: List<T>): List<T> => <List<T>>(L((x, L) => L));
 
@@ -66,9 +69,17 @@ export namespace List {
         : (ub > 0 ?
             cons(head(L), slice(tail(L), 0, ub - 1))
         : EmptyList)));
-}
 
-let L1 = List.cons(1, List.cons(2, List.EmptyList));
-let L2 = List.cons(3, List.cons(4, List.EmptyList));
-let L = List.concat(L1, L2);
-console.log(List.head(L));
+    // Reverse a list in O(n) time
+    // tail call optimized
+    export const reverse = <T>(A: List<T>) => {
+        let reverseHelper = (L: List<T>, R: List<T>) => {
+            let helper = Util.optimize<List<T>>((L: List<T>, R: List<T>): List<T> =>
+                (isEmpty(R) ? L
+                : Util.optRecurse(
+                    () => reverseHelper(cons(head(R), L), tail(L)))));
+            return helper(L, EmptyList);
+        };
+        return reverseHelper(EmptyList, A);
+    };
+}

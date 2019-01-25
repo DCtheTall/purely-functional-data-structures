@@ -182,4 +182,5 @@ export namespace RedBlack {
     };
 
     // Solution to 3.9b
+    // ...
 }
