@@ -3,6 +3,9 @@
 FIFO Queue data structure using two List objects
 head and tail have an amortized cost of O(1)
 
+It uses tail call optimization, so the size of the deque
+is not limited by the call stack size.
+
 */
 
 import { List } from '../chapter02/List';
@@ -19,7 +22,8 @@ namespace BatchedQueue {
 
     export const EmptyQueue = <Queue<any>>(Q => Q(List.EmptyList, List.EmptyList));
 
-    export const isEmpty = <T>(Q: Queue<T>) => (Q === EmptyQueue);
+    export const isEmpty = <T>(Q: Queue<T>) =>
+        (List.isEmpty(left(Q)) && List.isEmpty(right(Q)));
 
     const createQueue = <T>(L: List.List<T>, R: List.List<T>): Queue<T> =>
         <Queue<T>>(Q => Q(L, R));
@@ -41,4 +45,3 @@ namespace BatchedQueue {
         (List.isEmpty(left(Q)) ? Util.raise('EmptyQueue')
         : createQueue(List.tail(left(Q)), right(Q)));
 }
-

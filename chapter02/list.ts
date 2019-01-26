@@ -62,13 +62,18 @@ export namespace List {
 
     // Slice from index "lb" (head is 0, recall this is LIFO) up to but not including
     // index "ub"
-    export const slice = <T>(L: List<T>, lb: number, ub: number): List<T> =>
-        (isEmpty(L) ? EmptyList
-        : (lb > 0 ?
-            slice(tail(L), lb - 1, ub - 1)
-        : (ub > 0 ?
-            cons(head(L), slice(tail(L), 0, ub - 1))
-        : EmptyList)));
+    export const slice = <T>(L: List<T>, lb: number, ub: number): List<T> => {
+        let helper = Util.optimize<List.List<T>>((L: List<T>, lb: number, ub: number) =>
+            (isEmpty(L) ? EmptyList
+            : (lb > 0 ?
+                Util.optRecurse(
+                    () => slice(tail(L), lb - 1, ub - 1))
+            : (ub > 0 ?
+                Util.optRecurse(
+                    () => cons(head(L), slice(tail(L), 0, ub - 1)))
+            : EmptyList))));
+        return helper(L, lb, ub);
+    };
 
     // Reverse a list in O(n) time
     // tail call optimized
@@ -77,8 +82,8 @@ export namespace List {
             let helper = Util.optimize<List<T>>((L: List<T>, R: List<T>): List<T> =>
                 (isEmpty(R) ? L
                 : Util.optRecurse(
-                    () => reverseHelper(cons(head(R), L), tail(L)))));
-            return helper(L, EmptyList);
+                    () => reverseHelper(cons(head(R), L), tail(R)))));
+            return helper(L, R);
         };
         return reverseHelper(EmptyList, A);
     };
