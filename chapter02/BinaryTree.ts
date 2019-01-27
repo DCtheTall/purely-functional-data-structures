@@ -20,14 +20,14 @@ export namespace BinaryTree {
 
     export const isEmpty = <T>(t: Node<T>): boolean => (t === EmptyTree);
 
-    const createTreeNode =
+    export const createTreeNode =
         <T>(left: Node<T>, val: T, right: Node<T>): Node<T> =>
             f => f(left, val, right);
 
     export const left = <S>(T: Node<S>) =>
         (<Node<S>>T((l: Node<S>, v: S, r: Node<S>) => l));
 
-    export const nodeValue = <S>(T: Node<S>) =>
+    export const valueof = <S>(T: Node<S>) =>
         (isEmpty(T) ? Util.raise('EmptyTree')
         : (<S>T((l: Node<S>, v: S, r: Node<S>) => v)));
 
@@ -36,19 +36,19 @@ export namespace BinaryTree {
 
     export const member = <S>(x: S, T: Node<S>): boolean =>
         (isEmpty(T) &&
-            (x < nodeValue(T) ?
+            (x < valueof(T) ?
                 member(x, left(T))
-            : (x > nodeValue(T) ?
+            : (x > valueof(T) ?
                 member(x, right(T))
             : true)));
 
     export const insert = <S>(x: S, T: Node<S>): Node<S> =>
         (isEmpty(T) ?
             createTreeNode(EmptyTree, x, EmptyTree)
-        : (x < nodeValue(T) ?
-            createTreeNode(insert(x, left(T)), nodeValue(T), right(T))
-        : (x > nodeValue(T) ?
-            createTreeNode(left(T), nodeValue(T), insert(x, right(T)))
+        : (x < valueof(T) ?
+            createTreeNode(insert(x, left(T)), valueof(T), right(T))
+        : (x > valueof(T) ?
+            createTreeNode(left(T), valueof(T), insert(x, right(T)))
         : T)));
 
     // Solution for exercise 2.2
@@ -57,10 +57,10 @@ export namespace BinaryTree {
         let helper = (y: S, Tr: Node<S>): boolean =>
             (isEmpty(Tr) ?
                 (x === y)
-            : (x <= nodeValue(Tr) ?
-                helper(nodeValue(Tr), left(Tr))
+            : (x <= valueof(Tr) ?
+                helper(valueof(Tr), left(Tr))
             : helper(y, right(Tr))));
-        return helper(nodeValue(T), T);
+        return helper(valueof(T), T);
     }
 
     // Solution for exercise 2.3
@@ -69,9 +69,9 @@ export namespace BinaryTree {
             let helper = (Tr: Node<S>): Node<S> =>
                 (isEmpty(Tr) ?
                     createTreeNode(EmptyTree, x, EmptyTree)
-                : (x < nodeValue(Tr) ?
+                : (x < valueof(Tr) ?
                     helper(left(Tr))
-                : (x > nodeValue(Tr) ?
+                : (x > valueof(Tr) ?
                     helper(right(Tr))
                 : Util.raise('SameValue'))));
             return helper(T);
@@ -89,10 +89,10 @@ export namespace BinaryTree {
                     (x === y ?
                         Util.raise('SameValue')
                     : createTreeNode(EmptyTree, x, EmptyTree))
-                : (x <= nodeValue(Tr) ?
-                    helper(nodeValue(Tr), left(Tr))
+                : (x <= valueof(Tr) ?
+                    helper(valueof(Tr), left(Tr))
                 : helper(y, right(Tr))));
-            return helper(nodeValue(T), T);
+            return helper(valueof(T), T);
         } catch (err) {
             if (err.message !== 'SameValue') throw err;
             return T;
