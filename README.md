@@ -1,4 +1,5 @@
 # Todo
 - Tail call optimize recursive functions
 - Finish Red Black tree exercises
-- Chapter 5
+- Ex 5.7
+- Pairing Heap
