@@ -4,6 +4,7 @@ Pairing Heap implementation
 
 */
 
+import { BinaryTree } from '../chapter02/BinaryTree';
 import { List } from '../chapter02/List';
 import { Util } from '../util';
 
@@ -45,4 +46,45 @@ export namespace PairingHeap {
     };
 
     export const deleteMin = <T>(H: Node<T>) => mergePairs(children(H));
+}
+
+// Solution to exercise 5.8
+export namespace BinaryPairingHeap {
+    export type Node<T> = BinaryTree.Node<T>;
+
+    export const EmptyHeap = BinaryTree.EmptyTree;
+
+    export const isEmpty = BinaryTree.isEmpty;
+
+    export const findMin = BinaryTree.valueof;
+
+    // TODO verify this by drawing graph
+    const merge = <T>(A: Node<T>, B: Node<T>): Node<T> =>
+        (isEmpty(A) ? B
+        : (isEmpty(B) ? A
+        : (findMin(A) <= findMin(B) ?
+            BinaryTree.createTreeNode(B, findMin(A), EmptyHeap)
+        : BinaryTree.createTreeNode(A, findMin(B), EmptyHeap))));
+
+    // export const insert = <T>(el: T, H: Node<T>) =>
+    //     merge(BinaryTree.createTreeNode(EmptyHeap, el, EmptyHeap), H);
+
+    // const mergePairs = <T>(A: Node<T>): Node<T> => {
+    //     let helper = Util.optimize<Node<T>>((A: Node<T>) =>
+    //         (isEmpty(A) ? EmptyHeap
+    //         : (isEmpty(BinaryTree.right(A)) ? A
+    //         : Util.optRecurse(() =>
+    //             merge(
+    //                 merge(
+    //                     A,
+    //                     BinaryTree.createTreeNode(
+    //                         BinaryTree.left(BinaryTree.right(A)),
+    //                         BinaryTree.valueof(BinaryTree.right(A)),
+    //                         EmptyHeap)),
+    //                     mergePairs(BinaryTree.right(BinaryTree.right(A))),
+    //             )))));
+    //     return helper(A);
+    // };
+
+    // export const deleteMin = <T>(H: Node<T>) => mergePairs(BinaryTree.left(H));
 }
