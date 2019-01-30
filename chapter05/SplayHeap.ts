@@ -6,6 +6,7 @@ using a self-balancing binary tree
 */
 
 import { BinaryTree } from '../chapter02/BinaryTree';
+import { List } from '../chapter02/List';
 import { Util } from '../util';
 
 export namespace SplayHeap {
@@ -206,5 +207,17 @@ export namespace SplayHeap {
         return helper(t);
     };
 
-    // TODO exercise 5.7
+    // Exercise 5.7 solution
+    // Executes on an arbitrary list in O(n * log(n))
+    export const sortList = <T>(L: List.List<T>): List.List<T> => {
+        let buildList = (H: Node<T>, L: List.List<T>): List.List<T> => {
+            let helper = Util.optimize<List.List<T>>((H: Node<T>, L: List.List<T>) =>
+                (isEmpty(H) ? L
+                : buildList(deleteMin(H), List.cons(findMin(H), L))));
+            return helper(H, L);
+        };
+        return buildList(
+            List.reduce(L, (h, el) => insert(el, h), <Node<T>>EmptyTree),
+            <List.List<T>>List.EmptyList);
+    };
 }

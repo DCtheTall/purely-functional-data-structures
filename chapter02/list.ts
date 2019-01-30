@@ -26,6 +26,7 @@ export namespace List {
 
     export const cons = <T>(e: T, L: List<T>): List<T> => f => f(e, L);
 
+    // Head of A becomes head of new list
     export function concat<T>(A: List<T>, B: List<T>): List<T> {
         let helper = Util.optimize<List<T>>(
             (A: List<T>, B: List<T>) =>
@@ -87,4 +88,20 @@ export namespace List {
         };
         return reverseHelper(EmptyList, A);
     };
+
+    type ReduceCallback<S, T> = (acc: S, el: T) => S;
+
+    export const reduce =
+        <S, T>(L: List.List<T>, callback: ReduceCallback<S, T>, initial: S): S => {
+            let helper = Util.optimize<S>(
+                (L: List.List<T>, callback: ReduceCallback<S, T>, initial: S) =>
+                    (List.isEmpty(L) ?
+                        initial
+                    : Util.optRecurse(() =>
+                        reduce(
+                            List.tail(L),
+                            callback,
+                            callback(initial, List.head(L))))));
+            return <S>helper(L, callback, initial);
+        };
 }
