@@ -45,7 +45,10 @@ export namespace PairingHeap {
         return <Node<T>>helper(L);
     };
 
-    export const deleteMin = <T>(H: Node<T>) => mergePairs(children(H));
+    export const deleteMin = <T>(H: Node<T>): Node<T> =>
+        (isEmpty(H) ?
+            Util.raise('Empty')
+        : mergePairs(children(H)));
 }
 
 // Solution to exercise 5.8
@@ -58,33 +61,43 @@ export namespace BinaryPairingHeap {
 
     export const findMin = BinaryTree.valueof;
 
-    // TODO verify this by drawing graph
+    // Recall the root of these trees never has a right child
     const merge = <T>(A: Node<T>, B: Node<T>): Node<T> =>
         (isEmpty(A) ? B
         : (isEmpty(B) ? A
         : (findMin(A) <= findMin(B) ?
-            BinaryTree.createTreeNode(B, findMin(A), EmptyHeap)
+            BinaryTree.createTreeNode(
+                BinaryTree.createTreeNode(
+                    BinaryTree.left(B),
+                    findMin(B),
+                    BinaryTree.left(A)),
+                findMin(A),
+                EmptyHeap)
         : BinaryTree.createTreeNode(A, findMin(B), EmptyHeap))));
 
-    // export const insert = <T>(el: T, H: Node<T>) =>
-    //     merge(BinaryTree.createTreeNode(EmptyHeap, el, EmptyHeap), H);
+    export const insert = <T>(el: T, H: Node<T>): Node<T> =>
+        merge(BinaryTree.createTreeNode(EmptyHeap, el, EmptyHeap), H);
 
-    // const mergePairs = <T>(A: Node<T>): Node<T> => {
-    //     let helper = Util.optimize<Node<T>>((A: Node<T>) =>
-    //         (isEmpty(A) ? EmptyHeap
-    //         : (isEmpty(BinaryTree.right(A)) ? A
-    //         : Util.optRecurse(() =>
-    //             merge(
-    //                 merge(
-    //                     A,
-    //                     BinaryTree.createTreeNode(
-    //                         BinaryTree.left(BinaryTree.right(A)),
-    //                         BinaryTree.valueof(BinaryTree.right(A)),
-    //                         EmptyHeap)),
-    //                     mergePairs(BinaryTree.right(BinaryTree.right(A))),
-    //             )))));
-    //     return helper(A);
-    // };
+    const mergePairs = <T>(H: Node<T>): Node<T> => {
+        let helper = Util.optimize<Node<T>>((H: Node<T>) =>
+            (isEmpty(H) ?
+                EmptyHeap
+            : (isEmpty(BinaryTree.right(H)) ?
+                H
+            : merge(
+                merge(
+                    BinaryTree.createTreeNode(
+                        BinaryTree.left(H),
+                        BinaryTree.valueof(H),
+                        EmptyHeap),
+                    BinaryTree.createTreeNode(
+                        BinaryTree.left(BinaryTree.right(H)),
+                        BinaryTree.valueof(BinaryTree.right(H)),
+                        EmptyHeap)),
+                mergePairs(
+                    BinaryTree.right(BinaryTree.right(H)))))));
+        return helper(H);
+    };
 
-    // export const deleteMin = <T>(H: Node<T>) => mergePairs(BinaryTree.left(H));
+    export const deleteMin = <T>(H: Node<T>) => mergePairs(BinaryTree.left(H));
 }

@@ -114,7 +114,7 @@ export namespace RedBlack {
     // Solution to 3.8 (fromOrdList)
     // export const fromOrdList = ...
 
-    // Solution to 3.9a
+    // The following 3 functions are the solution to 3.9a
 
     export const lbalance = <T>(col: Color, val: T, lt: Node<T>, rt: Node<T>): Node<T> =>
         (col === Red ?
