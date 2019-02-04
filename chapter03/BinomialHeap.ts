@@ -8,24 +8,24 @@ import { List } from '../chapter02/List';
 import { Util } from '../util';
 
 export namespace BinomialHeap {
-    type Node<T> = (f: Selector<T>) => (number | T | Heap<T>);
+    type Tree<T> = (f: Selector<T>) => (number | T | Heap<T>);
 
     type Selector<T> = (rank: number, value: T, children: Heap<T>) =>
         (number | T | Heap<T>);
 
-    export type Heap<T> = List.List<Node<T>>;
+    export type Heap<T> = List.List<Tree<T>>;
 
-    const rank = <T>(t: Node<T>) => <number>t((r, v, c) => r);
+    const rank = <T>(t: Tree<T>) => <number>t((r, v, c) => r);
 
-    const valueof = <T>(t: Node<T>) => <T>t((r, v, c) => v);
+    const valueof = <T>(t: Tree<T>) => <T>t((r, v, c) => v);
 
-    const children = <T>(t: Node<T>) => <Heap<T>>t((r, v, c) => c);
+    const children = <T>(t: Tree<T>) => <Heap<T>>t((r, v, c) => c);
 
     const createNode = <T>(r: number, v: T, c: Heap<T>) =>
-        <Node<T>>(f => f(r, v, c));
+        <Tree<T>>(f => f(r, v, c));
 
     // Link two nodes of equal rank.
-    const link = <T>(A: Node<T>, B: Node<T>): Node<T> =>
+    const link = <T>(A: Tree<T>, B: Tree<T>): Tree<T> =>
         (rank(A) !== rank(B) ?
             Util.raise('NotEqualRank')
         : (valueof(A) <= valueof(B) ?
@@ -36,10 +36,10 @@ export namespace BinomialHeap {
 
     export const isEmpty = (H: Heap<any>): boolean => (H === EmptyHeap);
 
-    const root = <T>(H: Heap<T>): Node<T> => List.head(H);
+    const root = <T>(H: Heap<T>): Tree<T> => List.head(H);
 
     // Insert a binomial tree into the heap.
-    const insertTree = <T>(t: Node<T>, H: Heap<T>): Heap<T> =>
+    const insertTree = <T>(t: Tree<T>, H: Heap<T>): Heap<T> =>
         (isEmpty(H) ? List.cons(t, EmptyHeap)
         : (rank(t) < rank(root(H)) ?
             List.cons(t, H)
@@ -77,13 +77,13 @@ export namespace BinomialHeap {
     };
 
     // findMin in O(log(N)) time
-    export const findMin = <T>(H: Heap<T>): Node<T> => root(removeMinTree(H));
+    export const findMin = <T>(H: Heap<T>): Tree<T> => root(removeMinTree(H));
 
     // Solution to exercise 3.5. O(log(N)) time.
-    export const findMin2 = <T>(H: Heap<T>): Node<T> => {
+    export const findMin2 = <T>(H: Heap<T>): Tree<T> => {
         if (isEmpty(H)) Util.raise('EmptyHeap');
         if (List.length(H) === 1) return root(H);
-        let val: Node<T> = findMin2(List.tail(H));
+        let val: Tree<T> = findMin2(List.tail(H));
         if (valueof(root(H)) < valueof(val))
             return root(H);
         return val;
@@ -92,7 +92,9 @@ export namespace BinomialHeap {
     // Delete the minimum element in O(log(N)) time
     export const deleteMin = <T>(H: Heap<T>): Heap<T> => {
         let minTree = removeMinTree(H);
-        return merge(children(List.head(minTree)), List.tail(minTree));
+        return merge(
+            List.reverse(children(List.head(minTree))),
+            List.tail(minTree));
     };
 }
 
