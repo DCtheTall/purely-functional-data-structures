@@ -28,8 +28,9 @@ export namespace Util {
     // Lazy evaluation takes advantage of JS closure and delayed evaluation
     // using abstraction
     export function lazy<T>(f: LazyFunction<T>): LazyFunction<T> {
+        console.log('called');
         let cached: T = null;
-        return () => (cached || (cached = f()));
+        return () => <any>(cached ? console.log('reused') : console.log('evaluated')) || (cached || (cached = f()));
     };
 
     export const force = <T>(f: LazyFunction<T>): T => f();
