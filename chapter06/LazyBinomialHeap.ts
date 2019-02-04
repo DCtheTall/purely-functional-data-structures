@@ -30,13 +30,13 @@ export namespace LazyBinomialHeap {
 
     const children = <T>(t: Tree<T>) => <TreeList<T>>t((r, v, c) => c);
 
-    const createNode = <T>(r: number, val: T, ch: TreeList<T>) =>
+    const createTree = <T>(r: number, val: T, ch: TreeList<T>) =>
         <Tree<T>>(t => t(r, val, ch));
 
     const link = <T>(t1: Tree<T>, t2: Tree<T>): Tree<T> =>
         (root(t1) <= root(t2) ?
-            createNode(rank(t1) + 1, root(t1), List.cons(t2, children(t1)))
-        : createNode(rank(t2) + 1, root(t2), List.cons(t1, children(t2))));
+            createTree(rank(t1) + 1, root(t1), List.cons(t2, children(t1)))
+        : createTree(rank(t2) + 1, root(t2), List.cons(t1, children(t2))));
 
     const insTree = <T>(t: Tree<T>, tL: TreeList<T>): TreeList<T> => {
         let helper = Util.optimize<TreeList<T>>((t: Tree<T>, tL: TreeList<T>) =>
@@ -67,7 +67,7 @@ export namespace LazyBinomialHeap {
     };
 
     export const insert = <T>(e: T, h: Heap<T>) =>
-        Util.lazy(() => insTree(createNode(0, e, List.EmptyList), Util.force(h)));
+        Util.lazy(() => insTree(createTree(0, e, List.EmptyList), Util.force(h)));
 
     export const merge = <T>(h1: Heap<T>, h2: Heap<T>) =>
         Util.lazy(() => mrg(Util.force(h1), Util.force(h2)));
@@ -99,4 +99,38 @@ export namespace LazyBinomialHeap {
                 children(List.head(minTree))),
                 List.tail(minTree));
         });
+}
+
+// TODO refactor using SizedHeap functor
+// Solution to exercise 6.5, add an explict size to th
+export namespace SizedBinomialHeap {
+    export type Heap<T> = (f: Selector<T>) => (number | LazyBinomialHeap.Heap<T>);
+
+    type Selector<T> = (size: number, heap: LazyBinomialHeap.Heap<T>) =>
+        (number | LazyBinomialHeap.Heap<T>);
+
+    const size = <T>(sh: Heap<T>) => <number>sh((s, h) => s);
+
+    const heap = <T>(sh: Heap<T>) => <LazyBinomialHeap.Heap<T>>sh((s, h) => h);
+
+    export const EmptyHeap = <Heap<any>>(h => h(0, LazyBinomialHeap.EmptyHeap));
+
+    export const isEmpty = <T>(h: Heap<T>) => (size(h) === 0);
+
+    const createSizedHeap = <T>(size: number, h: LazyBinomialHeap.Heap<T>) =>
+        <Heap<T>>(sh => sh(size, h));
+
+    export const insert = <T>(e: T, sh: Heap<T>): Heap<T> =>
+        createSizedHeap(size(sh) + 1, LazyBinomialHeap.insert(e, heap(sh)));
+
+    export const merge = <T>(sh1: Heap<T>, sh2: Heap<T>) =>
+        createSizedHeap(
+            size(sh1) + size(sh2),
+            LazyBinomialHeap.merge(heap(sh1), heap(sh2)));
+
+    export const findMin = <T>(sh: Heap<T>) =>
+        LazyBinomialHeap.findMin(heap(sh));
+
+    export const deleteMin = <T>(sh: Heap<T>) =>
+        createSizedHeap(size(sh) - 1, LazyBinomialHeap.deleteMin(heap(sh)));
 }

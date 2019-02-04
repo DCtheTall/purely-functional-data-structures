@@ -198,7 +198,7 @@ export namespace RankBinomialHeap {
 }
 
 // Exercise 3.7: Implement BinomialHeap which can do findMin in O(1)
-// TODO implement using general ExplicitMin functor instead
+// TODO implement using general ExplicitMin functor instead (see chapter06/LazyBinomialHeap)
 export namespace MinBinomialHeap {
     type Node<T> = (f: NodeSelector<T>) => (number | T | Heap<T>);
 
