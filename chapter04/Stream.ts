@@ -32,7 +32,7 @@ export namespace Stream {
     };
 
     export const cons = <T>(e: T, S: Stream<T>): Stream<T> =>
-        Util.lazy((): StreamCell<T> => (f: Selector<T>) => f(e, S));
+        Util.lazy(() => <StreamCell<T>>((f: Selector<T>) => f(e, S)));
 
     // Concat two streams
     export const concat = <T>(A: Stream<T>, B: Stream<T>): Stream<T> =>
