@@ -29,6 +29,7 @@ export namespace RealTimeQueue {
 
     const isEmpty = (Q: Queue<any>) => Stream.isEmpty(front(Q));
 
+    // Rotation occurs when |r| = |f| + 1
     const rotate =
         <T>(f: Stream.Stream<T>, r: List.List<T>, s: Stream.Stream<T>): Stream.Stream<T> => {
             let helper = Util.optimize<Stream.Stream<T>>(
@@ -45,6 +46,7 @@ export namespace RealTimeQueue {
             return <Stream.Stream<T>>helper(f, r, s);
         };
 
+    // Maintains the invariant that |s| = |f| - |r|
     const exec = <T>(f: Stream.Stream<T>, r: List.List<T>, s: Stream.Stream<T>): Queue<T> => {
         if (Stream.isEmpty(s)) {
             let newFront = rotate(f, r, Stream.EmptyStream);
@@ -65,4 +67,8 @@ export namespace RealTimeQueue {
         (isEmpty(Q) ?
             Util.raise('Empty')
         : exec(Stream.tail(front(Q)), rear(Q), schedule(Q)));
+
+    // Solution to exercise 7.3
+    export const size = (Q: Queue<any>): number =>
+        ((2 * List.length(rear(Q))) + Stream.length(schedule(Q)));
 }

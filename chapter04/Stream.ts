@@ -109,6 +109,7 @@ export namespace Stream {
             return Util.force(sortHelper(k, s, null));
         });
 
+    // Reverse a stream lazily in O(n) operations
     export const reverse = <T>(S: Stream<T>): Stream<T> =>
         Util.lazy<StreamCell<T>>(() => {
             let reverseHelper = (L: Stream<T>, R: Stream<T>): Stream<T> => {
@@ -120,6 +121,14 @@ export namespace Stream {
             };
             return Util.force(reverseHelper(EmptyStream, S));
         });
+
+    export const length = (S: Stream<any>): number => {
+        let helper = Util.optimize<number>((S: Stream<any>) =>
+            isEmpty(S) ? 0
+            : Util.optRecurse(() =>
+                1 + length(tail(S))));
+        return <number>helper(S);
+    };
 }
 
 
