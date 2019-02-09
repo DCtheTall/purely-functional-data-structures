@@ -1,6 +1,10 @@
 /*
 
 Real-time queue data structure
+which uses a schedule stream to order
+the forcing of suspensions so that
+all queue operations are O(1) even in
+the worst case.
 
 */
 
