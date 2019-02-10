@@ -35,19 +35,21 @@ export namespace BottomUpMergesort {
             List.cons(List.head(xs), mrg(List.tail(xs), ys))
         : List.cons(List.head(ys), mrg(xs, List.tail(ys))))));
 
+    const addSeg = <T>(seg: List.List<T>, segs: NestedList<T>, s: number): NestedList<T> =>
+        (s % 2 === 0 ?
+            List.cons(seg, segs)
+        : addSeg(
+            mrg(seg, List.head(segs)),
+            List.tail(segs), Math.floor(s / 2)));
+
     // Takes amortized O(log(n)) time
-    export const add = <T>(x: T, S: Sortable<T>): Sortable<T> => {
-        let addSeg = (seg: List.List<T>, segs: NestedList<T>, s: number): NestedList<T> =>
-            (s % 2 === 0 ?
-                List.cons(seg, segs)
-            : addSeg(mrg(seg, List.head(segs)), List.tail(segs), Math.floor(s / 2)));
-        return createSortable(
+    export const add = <T>(x: T, S: Sortable<T>): Sortable<T> =>
+        createSortable(
             size(S) + 1,
             Util.lazy(() => addSeg(
                 List.cons(x, List.EmptyList),
                 Util.force(segments(S)),
                 size(S))));
-    };
 
     // Takes amortized O(n) time
     export const sort = <T>(S: Sortable<T>): List.List<T> => {

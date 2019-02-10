@@ -110,9 +110,19 @@ export namespace Stream {
         (isEmpty(S) ? 0
         : 1 + length(tail(S)));
 
-    export const listToStream = <T>(L: List.List<T>) =>
-        (List.isEmpty(L) ? EmptyStream
-        : Stream.cons(List.head(L), listToStream(List.tail(L))));
+    export const listToStream = <T>(L: List.List<T>): Stream<T> =>
+        (List.isEmpty(L) ?
+            EmptyStream
+        : Stream.cons(
+            List.head(L),
+            listToStream(List.tail(L))));
+
+    export const streamToList = <T>(S: Stream<T>): List.List<T> =>
+        (isEmpty(S) ?
+            List.EmptyList
+        : List.cons(
+            head(S),
+            streamToList(tail(S))));
 }
 
 

@@ -32,10 +32,14 @@ export namespace Util {
     // Lazy evaluation takes advantage of JS closure and delayed evaluation
     // using abstraction
     export function lazy<T>(f: Suspension<T>): Suspension<T> {
-        console.log('called');
         let cached: T = null;
         return () => (cached || (cached = f()));
     };
+
+    // TODO refactor using lazy curry function
+    // export const lazy = <T>(f: FunctionThatReturns<T>) =>
+    //     (<FunctionThatReturns<Suspension<T>>>
+    //         ((...args: any[]) => lazyEval(() => f(...args))));
 
     export const force = <T>(f: Suspension<T>): T => f();
 
