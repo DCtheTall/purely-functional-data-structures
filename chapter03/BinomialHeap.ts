@@ -241,17 +241,12 @@ export namespace MinBinomialHeap {
 
     export const isEmpty = <T>(M: MinHeap<T>) => (M === EmptyMinHeap);
 
-    const insertTreeIntoHeap = <T>(t: Node<T>, H: Heap<T>) => {
-        let helper = Util.optimize<Heap<T>>((t: Node<T>, H: Heap<T>) =>
-            (rank(t) < rank(root(H)) ?
-                List.cons(t, H)
-            : (rank(t) > rank(root(H)) ?
-                Util.optRecurse(
-                    () => List.cons(root(H), insertTreeIntoHeap(t, List.tail(H))))
-            : Util.optRecurse(
-                () => insertTreeIntoHeap(link(t, root(H)), List.tail(H))))));
-        return helper(t, H);
-    };
+    const insertTreeIntoHeap = <T>(t: Node<T>, H: Heap<T>): Heap<T> =>
+        (rank(t) < rank(root(H)) ?
+            List.cons(t, H)
+        : (rank(t) > rank(root(H)) ?
+            List.cons(root(H), insertTreeIntoHeap(t, List.tail(H)))
+        : insertTreeIntoHeap(link(t, root(H)), List.tail(H))));
 
     const insertTree = <T>(t: Node<T>, M: MinHeap<T>): MinHeap<T> =>
         (isEmpty(M) ?
@@ -263,22 +258,16 @@ export namespace MinBinomialHeap {
     export const insert = <T>(val: T, M: MinHeap<T>): MinHeap<T> =>
         insertTree(createNode(0, val, List.EmptyList), M);
 
-    const mergeHeaps = <T>(A: Heap<T>, B: Heap<T>): Heap<T> => {
-        let helper = Util.optimize<Heap<T>>((A: Heap<T>, B: Heap<T>) =>
-            (List.isEmpty(A) ? B
-            : (List.isEmpty(B) ? A
-            : (rank(root(A)) < rank(root(B)) ?
-                Util.optRecurse(
-                    () => List.cons(root(A), mergeHeaps(List.tail(A), B)))
-            : (rank(root(B)) < rank(root(A)) ?
-                Util.optRecurse(
-                    () => List.cons(root(B), mergeHeaps(A, List.tail(B))))
-            : Util.optRecurse(
-                () => insertTreeIntoHeap(
-                    link(root(A), root(B)),
-                    mergeHeaps(List.tail(A), List.tail(B)))))))));
-        return helper(A, B);
-    };
+    const mergeHeaps = <T>(A: Heap<T>, B: Heap<T>): Heap<T> =>
+        (List.isEmpty(A) ? B
+        : (List.isEmpty(B) ? A
+        : (rank(root(A)) < rank(root(B)) ?
+            List.cons(root(A), mergeHeaps(List.tail(A), B))
+        : (rank(root(B)) < rank(root(A)) ?
+            List.cons(root(B), mergeHeaps(A, List.tail(B)))
+        : insertTreeIntoHeap(
+            link(root(A), root(B)),
+            mergeHeaps(List.tail(A), List.tail(B)))))));
 
     export const merge = <T>(A: MinHeap<T>, B: MinHeap<T>): MinHeap<T> =>
         (findMin(A) < findMin(B) ? createMinHeap(findMin(A), mergeHeaps(heap(A), heap(B)))
@@ -290,31 +279,26 @@ export namespace MinBinomialHeap {
         if (List.isEmpty(H)) Util.raise('EmptyHeap');
         // Recursively find the min using tail recursion
         // O(log(N)) time
-        let findMinTree = (cur: Node<T>, H: Heap<T>): Node<T> => {
-            let helper = Util.optimize<Node<T>>((cur: Node<T>, H: Heap<T>): Node<T> =>
-                (List.length(H) === 0 ? cur
-                : (valueof(cur) < valueof(root(H)) ?
-                    <Node<T>>Util.optRecurse(() => findMinTree(cur, List.tail(H)))
-                : <Node<T>>Util.optRecurse(() => findMinTree(root(H), List.tail(H))))));
-            return <Node<T>>helper(cur, H);
-        };
+        let findMinTree = (cur: Node<T>, H: Heap<T>): Node<T> =>
+            (List.length(H) === 0 ? cur
+            : (valueof(cur) < valueof(root(H)) ?
+                findMinTree(cur, List.tail(H))
+            : findMinTree(root(H), List.tail(H))));
         let minTree = findMinTree(root(H), List.tail(H));
         // Recursively find the elements on each side
         // O(log(N)) time
-        let partitionHeap = (L: Heap<T>, R: Heap<T>): List.List<Heap<T>> => {
-            let helper = Util.optimize<List.List<Heap<T>>>(
-                (L: Heap<T>, R: Heap<T>): List.List<Heap<T>> =>
-                    (root(R) === minTree ?
-                        List.cons(L, List.cons(R, List.EmptyList))
-                    : Util.optRecurse(
-                        () => partitionHeap(List.cons(root(R), L), List.tail(R)))));
-            return helper(List.EmptyList, H);
-        };
+        let partitionHeap = (L: Heap<T>, R: Heap<T>): List.List<Heap<T>> =>
+            (root(R) === minTree ?
+                List.cons(L, List.cons(R, List.EmptyList))
+            : partitionHeap(List.cons(root(R), L), List.tail(R)));
         let partitionedHeap = partitionHeap(H, List.EmptyList);
         // Concat the partitioned heap in O(log(N)) time and return the result
         // with the min tree
-        return List.cons(minTree, List.concat(
-           List.head(partitionedHeap), List.head(List.tail(partitionedHeap))));
+        return List.cons(
+            minTree,
+            List.concat(
+                List.head(partitionedHeap),
+                List.head(List.tail(partitionedHeap))));
     };
 
     // Delete the minimum element in O(log(N)) time

@@ -11,24 +11,24 @@ import { Util } from '../util';
 
 export namespace PhysicistsQueue {
     export type Queue<T> = (f: Selector<T>) =>
-        (List.List<T> | number | Util.LazyFunction<List.List<T>>);
+        (List.List<T> | number | Util.Suspension<List.List<T>>);
 
     type Selector<T> =
-        (w: List.List<T>, fLen: number, front: Util.LazyFunction<List.List<T>>, rLen: number, rear: List.List<T>) =>
-            (List.List<T> | number | Util.LazyFunction<List.List<T>>);
+        (w: List.List<T>, fLen: number, front: Util.Suspension<List.List<T>>, rLen: number, rear: List.List<T>) =>
+            (List.List<T> | number | Util.Suspension<List.List<T>>);
 
     const working = <T>(Q: Queue<T>) => <List.List<T>>Q((w, fL, f, rL, r) => w);
 
     const fLen = <T>(Q: Queue<T>) => <number>Q((w, fL, f, rL, r) => fL);
 
-    const front = <T>(Q: Queue<T>) => <Util.LazyFunction<List.List<T>>>Q((w, fL, f, rL, r) => f);
+    const front = <T>(Q: Queue<T>) => <Util.Suspension<List.List<T>>>Q((w, fL, f, rL, r) => f);
 
     const rLen = <T>(Q: Queue<T>) => <number>Q((w, fL, f, rL, r) => rL);
 
     const rear = <T>(Q: Queue<T>) => <List.List<T>>Q((w, fL, f, rL, r) => r);
 
     const createQueue =
-        <T>(w: List.List<T>, fLen: number, f: Util.LazyFunction<List.List<T>>, rLen: number, r: List.List<T>) =>
+        <T>(w: List.List<T>, fLen: number, f: Util.Suspension<List.List<T>>, rLen: number, r: List.List<T>) =>
             <Queue<T>>(Q => Q(w, fLen, f, rLen, r));
 
     export const EmptyQueue =

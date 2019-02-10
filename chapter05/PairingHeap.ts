@@ -34,16 +34,12 @@ export namespace PairingHeap {
     export const insert = <T>(el: T, H: Heap<T>): Heap<T> =>
         merge(createNode(el, List.EmptyList), H);
 
-    const mergePairs = <T>(L: List.List<Heap<T>>): Heap<T> => {
-        let helper = Util.optimize<Heap<T>>((L: List.List<Heap<T>>) =>
-            (List.isEmpty(L) ? EmptyHeap
-            : (List.isEmpty(List.tail(L)) ? List.head(L)
-            : Util.optRecurse(() =>
-                merge(
-                    merge(List.head(L), List.head(List.tail(L))),
-                    mergePairs(List.tail(List.tail(L))))))));
-        return <Heap<T>>helper(L);
-    };
+    const mergePairs = <T>(L: List.List<Heap<T>>): Heap<T> =>
+        (List.isEmpty(L) ? EmptyHeap
+        : (List.isEmpty(List.tail(L)) ? List.head(L)
+        : merge(
+            merge(List.head(L), List.head(List.tail(L))),
+            mergePairs(List.tail(List.tail(L))))));
 
     export const deleteMin = <T>(H: Heap<T>): Heap<T> =>
         (isEmpty(H) ?
@@ -78,64 +74,54 @@ export namespace BinaryPairingHeap {
     export const insert = <T>(el: T, H: Heap<T>): Heap<T> =>
         merge(BinaryTree.createTreeNode(EmptyHeap, el, EmptyHeap), H);
 
-    const mergePairs = <T>(H: Heap<T>): Heap<T> => {
-        let helper = Util.optimize<Heap<T>>((H: Heap<T>) =>
-            (isEmpty(H) ?
-                EmptyHeap
-            : (isEmpty(BinaryTree.right(H)) ?
-                H
-            : merge(
-                merge(
-                    BinaryTree.createTreeNode(
-                        BinaryTree.left(H),
-                        BinaryTree.valueof(H),
-                        EmptyHeap),
-                    BinaryTree.createTreeNode(
-                        BinaryTree.left(BinaryTree.right(H)),
-                        BinaryTree.valueof(BinaryTree.right(H)),
-                        EmptyHeap)),
-                mergePairs(
-                    BinaryTree.right(BinaryTree.right(H)))))));
-        return helper(H);
-    };
+    const mergePairs = <T>(H: Heap<T>): Heap<T> =>
+        (isEmpty(H) ?
+            EmptyHeap
+        : (isEmpty(BinaryTree.right(H)) ?
+            H
+        : merge(
+            merge(
+                BinaryTree.createTreeNode(
+                    BinaryTree.left(H),
+                    BinaryTree.valueof(H),
+                    EmptyHeap),
+                BinaryTree.createTreeNode(
+                    BinaryTree.left(BinaryTree.right(H)),
+                    BinaryTree.valueof(BinaryTree.right(H)),
+                    EmptyHeap)),
+            mergePairs(
+                BinaryTree.right(BinaryTree.right(H))))));
 
     export const deleteMin = <T>(H: Heap<T>) => mergePairs(BinaryTree.left(H));
 
     // Solution to 5.8b
     export const toBinary = <T>(H: PairingHeap.Heap<T>): Heap<T> => {
-        let recursiveHelper = (H: PairingHeap.Heap<T>, L: List.List<PairingHeap.Heap<T>>) => {
-            let helper = Util.optimize<Heap<T>>(
-                (H: PairingHeap.Heap<T>, L: List.List<PairingHeap.Heap<T>>) =>
-                    (PairingHeap.isEmpty(H) ?
-                        EmptyHeap
-                    : (List.isEmpty(PairingHeap.children(H)) && List.isEmpty(L) ?
-                        BinaryTree.createTreeNode(
-                            EmptyHeap,
-                            PairingHeap.findMin(H),
-                            EmptyHeap)
-                    : (List.isEmpty(PairingHeap.children(H)) ?
-                        Util.optRecurse(() =>
-                            BinaryTree.createTreeNode(
-                                EmptyHeap,
-                                PairingHeap.findMin(H),
-                                recursiveHelper(List.head(L), List.tail(L))))
-                    : (List.isEmpty(L) ?
-                        Util.optRecurse(() =>
-                            BinaryTree.createTreeNode(
-                                recursiveHelper(
-                                    List.head(PairingHeap.children(H)),
-                                    List.tail(PairingHeap.children(H))),
-                                PairingHeap.findMin(H),
-                                EmptyHeap))
-                    : Util.optRecurse(() =>
-                        BinaryTree.createTreeNode(
-                            recursiveHelper(
-                                List.head(PairingHeap.children(H)),
-                                List.tail(PairingHeap.children(H))),
-                            PairingHeap.findMin(H),
-                            recursiveHelper(List.head(L), List.tail(L)))))))));
-            return helper(H, L);
-        };
+        let recursiveHelper = (H: PairingHeap.Heap<T>, L: List.List<PairingHeap.Heap<T>>) =>
+            (PairingHeap.isEmpty(H) ?
+                EmptyHeap
+            : (List.isEmpty(PairingHeap.children(H)) && List.isEmpty(L) ?
+                BinaryTree.createTreeNode(
+                    EmptyHeap,
+                    PairingHeap.findMin(H),
+                    EmptyHeap)
+            : (List.isEmpty(PairingHeap.children(H)) ?
+                BinaryTree.createTreeNode(
+                    EmptyHeap,
+                    PairingHeap.findMin(H),
+                    recursiveHelper(List.head(L), List.tail(L)))
+            : (List.isEmpty(L) ?
+                BinaryTree.createTreeNode(
+                    recursiveHelper(
+                        List.head(PairingHeap.children(H)),
+                        List.tail(PairingHeap.children(H))),
+                    PairingHeap.findMin(H),
+                    EmptyHeap)
+            : BinaryTree.createTreeNode(
+                recursiveHelper(
+                    List.head(PairingHeap.children(H)),
+                    List.tail(PairingHeap.children(H))),
+                PairingHeap.findMin(H),
+                recursiveHelper(List.head(L), List.tail(L)))))));
         return recursiveHelper(H, List.EmptyList);
     };
 }

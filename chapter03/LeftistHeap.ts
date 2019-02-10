@@ -52,7 +52,9 @@ export namespace LeftistHeap {
             makeHeap(x, H, EmptyHeap)
         : makeHeap(findMin(H), left(H), insert2(x, right(H))));
 
-    // Following functions are a solution to
+    // Following functions are a solution to exercise
+
+    // O(n) mapping of a list to signleton heaps
     const mapToHeapSingletons = <T>(L: List.List<T>): List.List<Heap<T>> =>
         (List.isEmpty(L) ? List.EmptyList
         : List.cons(
@@ -72,6 +74,8 @@ export namespace LeftistHeap {
             logNHeapMerge(
                 List.slice(L, Math.floor(List.length(L) / 2), List.length(L)))));
 
+    // logNHeapMerge runs in O(log(n)), mapToHeapSingletons runs in O(n)
+    // so therefore this fn is O(log(n)) as well.
     export const fromList = <T>(L: List.List<T>): Heap<T> =>
         logNHeapMerge(mapToHeapSingletons(L));
 }

@@ -40,16 +40,13 @@ export namespace RedBlack {
 
     export const right = <T>(t: Node<T>) => <Node<T>>t((c, v, l, r) => r);
 
-    export const member = <T>(e: T, t: Node<T>): boolean => {
-        let helper = Util.optimize<boolean>((e: T, t: Node<T>) =>
-            (isEmpty(t) ? false
-            : (e < valueof(t) ?
-                Util.optRecurse(() => member(e, left(t)))
-            : (e > valueof(t) ?
-                Util.optRecurse(() => member(e, right(t)))
-            : true))));
-        return <boolean>helper(e, t);
-    };
+    export const member = <T>(e: T, t: Node<T>): boolean =>
+        (isEmpty(t) ? false
+        : (e < valueof(t) ?
+            member(e, left(t))
+        : (e > valueof(t) ?
+            member(e, right(t))
+        : true)));
 
     export const balance = <T>(col: Color, val: T, lt: Node<T>, rt: Node<T>): Node<T> =>
         (col === Red ?
@@ -94,19 +91,14 @@ export namespace RedBlack {
 
     // Tail optimized recursive insert function
     export const insert = <T>(val: T, t: Node<T>): Node<T> => {
-        let ins = (s: Node<T>): Node<T> => {
-            let helper = Util.optimize<Node<T>>((s: Node<T>) =>
-                (isEmpty(s) ?
-                    createNode(Red, val, Empty, Empty)
-                : (val < valueof(s) ?
-                    <Node<T>>Util.optRecurse(() =>
-                        balance(color(s), valueof(s), ins(left(s)), right(s)))
-                : (val > valueof(s) ?
-                    <Node<T>>Util.optRecurse(() =>
-                        balance(color(s), valueof(s), left(s), ins(right(s))))
-                : s))));
-            return helper(s);
-        };
+        let ins = (s: Node<T>): Node<T> =>
+            (isEmpty(s) ?
+                createNode(Red, val, Empty, Empty)
+            : (val < valueof(s) ?
+                balance(color(s), valueof(s), ins(left(s)), right(s))
+            : (val > valueof(s) ?
+                balance(color(s), valueof(s), left(s), ins(right(s)))
+            : s)));
         let tmp = ins(t);
         return createNode(Black, valueof(tmp), left(tmp), right(tmp));
     };
@@ -164,19 +156,14 @@ export namespace RedBlack {
 
 
     export const insert2 = <T>(val: T, t: Node<T>): Node<T> => {
-        let ins = (s: Node<T>): Node<T> => {
-            let helper = Util.optimize<Node<T>>((s: Node<T>) =>
-                (isEmpty(s) ?
-                    createNode(Red, val, Empty, Empty)
-                : (val < valueof(s) ?
-                    <Node<T>>Util.optRecurse(() =>
-                        lbalance(color(s), valueof(s), ins(left(s)), right(s)))
-                : (val > valueof(s) ?
-                    <Node<T>>Util.optRecurse(() =>
-                        rbalance(color(s), valueof(s), left(s), ins(right(s))))
-                : s))));
-            return helper(s);
-        };
+        let ins = (s: Node<T>): Node<T> =>
+            (isEmpty(s) ?
+                createNode(Red, val, Empty, Empty)
+            : (val < valueof(s) ?
+                lbalance(color(s), valueof(s), ins(left(s)), right(s))
+            : (val > valueof(s) ?
+                rbalance(color(s), valueof(s), left(s), ins(right(s)))
+            : s)));
         let tmp = ins(t);
         return createNode(Black, valueof(tmp), left(tmp), right(tmp));
     };
