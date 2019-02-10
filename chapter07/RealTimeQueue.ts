@@ -35,20 +35,15 @@ export namespace RealTimeQueue {
 
     // Rotation occurs when |r| = |f| + 1
     const rotate =
-        <T>(f: Stream.Stream<T>, r: List.List<T>, s: Stream.Stream<T>): Stream.Stream<T> => {
-            let helper = Util.optimize<Stream.Stream<T>>(
-                (f: Stream.Stream<T>, r: List.List<T>, s: Stream.Stream<T>) =>
-                    (Stream.isEmpty(f) ?
-                        Stream.cons(List.head(r), s)
-                    : Util.optRecurse<Stream.Stream<T>>(() =>
-                        Stream.cons(
-                            Stream.head(f),
-                            rotate(
-                                Stream.tail(f),
-                                List.tail(r),
-                                Stream.cons(List.head(r), s))))));
-            return <Stream.Stream<T>>helper(f, r, s);
-        };
+        <T>(f: Stream.Stream<T>, r: List.List<T>, s: Stream.Stream<T>): Stream.Stream<T> =>
+            (Stream.isEmpty(f) ?
+                Stream.cons(List.head(r), s)
+            : Stream.cons(
+                Stream.head(f),
+                rotate(
+                    Stream.tail(f),
+                    List.tail(r),
+                    Stream.cons(List.head(r), s))));
 
     // Maintains the invariant that |s| = |f| - |r|
     const exec = <T>(f: Stream.Stream<T>, r: List.List<T>, s: Stream.Stream<T>): Queue<T> => {

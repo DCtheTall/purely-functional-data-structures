@@ -38,33 +38,23 @@ export namespace LazyBinomialHeap {
             createTree(rank(t1) + 1, root(t1), List.cons(t2, children(t1)))
         : createTree(rank(t2) + 1, root(t2), List.cons(t1, children(t2))));
 
-    const insTree = <T>(t: Tree<T>, tL: TreeList<T>): TreeList<T> => {
-        let helper = Util.optimize<TreeList<T>>((t: Tree<T>, tL: TreeList<T>) =>
-            (List.isEmpty(tL) ?
-                <TreeList<T>>List.cons(t, List.EmptyList)
-            : (rank(t) < rank(List.head(tL)) ?
-                List.cons(t, tL)
-            : Util.optRecurse(() =>
-                insTree(link(t, List.head(tL)), List.tail(tL))))));
-        return helper(t, tL);
-    };
+    const insTree = <T>(t: Tree<T>, tL: TreeList<T>): TreeList<T> =>
+        (List.isEmpty(tL) ?
+            <TreeList<T>>List.cons(t, List.EmptyList)
+        : (rank(t) < rank(List.head(tL)) ?
+            List.cons(t, tL)
+        : insTree(link(t, List.head(tL)), List.tail(tL))));
 
-    const mrg = <T>(t1: TreeList<T>, t2: TreeList<T>): TreeList<T> => {
-        let helper = Util.optimize<TreeList<T>>((t1: TreeList<T>, t2: TreeList<T>) =>
-            (List.isEmpty(t1) ? t2
-            : (List.isEmpty(t2) ? t1
-            : (rank(List.head(t1)) < rank(List.head(t2)) ?
-                Util.optRecurse(() =>
-                    List.cons(List.head(t1), mrg(List.tail(t1), t2)))
-            : (rank(List.head(t2)) < rank(List.head(t1)) ?
-                Util.optRecurse(() =>
-                    List.cons(List.head(t2), mrg(t1, List.tail(t2))))
-            : Util.optRecurse(() =>
-                List.cons(
-                    link(List.head(t1), List.head(t2)),
-                    mrg(List.tail(t1), List.tail(t2)))))))));
-        return helper(t1, t2);
-    };
+    const mrg = <T>(t1: TreeList<T>, t2: TreeList<T>): TreeList<T> =>
+        (List.isEmpty(t1) ? t2
+        : (List.isEmpty(t2) ? t1
+        : (rank(List.head(t1)) < rank(List.head(t2)) ?
+            List.cons(List.head(t1), mrg(List.tail(t1), t2))
+        : (rank(List.head(t2)) < rank(List.head(t1)) ?
+            List.cons(List.head(t2), mrg(t1, List.tail(t2)))
+        : List.cons(
+            link(List.head(t1), List.head(t2)),
+            mrg(List.tail(t1), List.tail(t2)))))));
 
     export const insert = <T>(e: T, h: Heap<T>) =>
         Util.lazy(() => insTree(createTree(0, e, List.EmptyList), Util.force(h)));
@@ -72,22 +62,18 @@ export namespace LazyBinomialHeap {
     export const merge = <T>(h1: Heap<T>, h2: Heap<T>) =>
         Util.lazy(() => mrg(Util.force(h1), Util.force(h2)));
 
-    const removeMinTree = <T>(t: TreeList<T>): TreeList<T> => {
-        let helper = Util.optimize<TreeList<T>>((t: TreeList<T>) =>
-            (List.isEmpty(t) ?
-                Util.raise('Empty')
-            : (List.isEmpty(List.tail(t)) ?
-                List.EmptyList
-            : Util.optRecurse(() =>
-                (((val) =>
-                    (root(List.head(t)) < root(List.head(val)) ?
-                        t
-                    : List.cons(
-                        List.head(val),
-                        List.cons(List.head(t), List.tail(val))))
-                )(removeMinTree(List.tail(t))))))));
-        return helper(t);
-    };
+    const removeMinTree = <T>(t: TreeList<T>): TreeList<T> =>
+        (List.isEmpty(t) ?
+            Util.raise('Empty')
+        : (List.isEmpty(List.tail(t)) ?
+            List.EmptyList
+        : (((val) =>
+            (root(List.head(t)) < root(List.head(val)) ?
+                t
+            : List.cons(
+                List.head(val),
+                List.cons(List.head(t), List.tail(val))))
+        )(removeMinTree(List.tail(t))))));
 
     export const findMin = <T>(h: Heap<T>): T =>
         root(List.head(removeMinTree(Util.force(h))));

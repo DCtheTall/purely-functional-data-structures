@@ -7,22 +7,20 @@ export namespace Util {
         [TAG]?: boolean;
     };
 
+    export const trampoline = <T>(func: FunctionThatReturns<T>) =>
+        (...args: any[]): T => {
+            let f = <T | RecursiveFunction<T>>func.apply(null, args);
+            while (f[TAG]) {
+                f = (<RecursiveFunction<T>>f)();
+            }
+            return <T>f;
+        }
+
     // TODO implement key with Symbols if possible
-    export const optRecurse = <T>(f: RecursiveFunction<T>): RecursiveFunction<T> => {
+    export const recurseOn = <T>(f: RecursiveFunction<T>): RecursiveFunction<T> => {
         f[TAG] = true;
         return f;
     };
-
-    // Tail call optimization and lazy evaluation using a delayed
-    // evaluation scheme
-    export const optimize = <T>(f: RecursiveFunction<T>): RecursiveFunction<T> =>
-        (...args: any[]): T => {
-            let tmp = f(...args);
-            while (typeof tmp === 'function' && tmp[TAG]) {
-                tmp = (<RecursiveFunction<T>>tmp)();
-            }
-            return <T>(tmp); // force the type
-        };
 
     // IDEA: Would this be better if it used promises instead of generic types
     // a lazy function is an async function that returns a promise which delays

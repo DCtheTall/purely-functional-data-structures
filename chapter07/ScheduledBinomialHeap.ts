@@ -38,21 +38,16 @@ export namespace ScheduledBinomialHeap {
 
     type DigitStream<T> = Stream.Stream<Digit<T>>;
 
-    const insTree = <T>(d: Digit<T>, ds: DigitStream<T>): DigitStream<T> => {
-        let helper = Util.optimize<DigitStream<T>>(
-            (d: Digit<T>, ds: DigitStream<T>) =>
-                (Stream.isEmpty(ds) ?
-                    Stream.cons(d, Stream.EmptyStream)
-                : (isZero(Stream.head(ds)) ?
-                    Stream.cons(d, Stream.tail(ds))
-                : Util.optRecurse(() =>
-                    Stream.cons(
-                        Zero,
-                        insTree(
-                            link(<Tree<T>>d, <Tree<T>>Stream.head(ds)),
-                            Stream.tail(ds)))))));
-        return <DigitStream<T>>helper(d, ds);
-    }
+    const insTree = <T>(d: Digit<T>, ds: DigitStream<T>): DigitStream<T> =>
+        (Stream.isEmpty(ds) ?
+            Stream.cons(d, Stream.EmptyStream)
+        : (isZero(Stream.head(ds)) ?
+            Stream.cons(d, Stream.tail(ds))
+        : Stream.cons(
+            Zero,
+            insTree(
+                link(<Tree<T>>d, <Tree<T>>Stream.head(ds)),
+                Stream.tail(ds)))));
 
     // const mrg = <T>(ds1: DigitStream<T>, ds2: DigitStream<T>): DigitStream<T> => {}
 

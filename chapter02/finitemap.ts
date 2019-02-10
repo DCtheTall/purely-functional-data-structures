@@ -35,22 +35,22 @@ export namespace FiniteMap {
 
     export const get = <S, T>(M: FiniteMap<S, T>, k: S): T =>
         (BinaryTree.isEmpty(M) ? Util.raise('NotFound')
-        : (key(BinaryTree.nodeValue(M)) < k ? get(BinaryTree.left(M), k)
-        : (key(BinaryTree.nodeValue(M)) > k ? get(BinaryTree.right(M), k)
-        : valueof(BinaryTree.nodeValue(M)))));
+        : (key(BinaryTree.valueof(M)) < k ? get(BinaryTree.left(M), k)
+        : (key(BinaryTree.valueof(M)) > k ? get(BinaryTree.right(M), k)
+        : valueof(BinaryTree.valueof(M)))));
 
     export const set = <S, T>(M: FiniteMap<S, T>, k: S, val: T): FiniteMap<S, T> =>
         (BinaryTree.isEmpty(M) ?
             <FiniteMap<S, T>>(f => f(BinaryTree.EmptyTree, createKvp(k, val), BinaryTree.EmptyTree))
-        : (k < key(BinaryTree.nodeValue(M)) ?
+        : (k < key(BinaryTree.valueof(M)) ?
             createMapElem(
                 set(BinaryTree.left(M), k, val),
-                BinaryTree.nodeValue(M),
+                BinaryTree.valueof(M),
                 BinaryTree.right(M))
-        : (k > key(BinaryTree.nodeValue(M)) ?
+        : (k > key(BinaryTree.valueof(M)) ?
             createMapElem(
                 BinaryTree.left(M),
-                BinaryTree.nodeValue(M),
+                BinaryTree.valueof(M),
                 set(BinaryTree.right(M), k, val))
         : createMapElem(
             BinaryTree.left(M),
