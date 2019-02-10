@@ -27,17 +27,17 @@ export namespace Util {
     // the evaluation of a function. Forcing the lazy expression is awaiting
     // the promise.
 
-    export type LazyFunction<T> = () => T;
+    export type Suspension<T> = () => T;
 
     // Lazy evaluation takes advantage of JS closure and delayed evaluation
     // using abstraction
-    export function lazy<T>(f: LazyFunction<T>): LazyFunction<T> {
+    export function lazy<T>(f: Suspension<T>): Suspension<T> {
         console.log('called');
         let cached: T = null;
         return () => (cached || (cached = f()));
     };
 
-    export const force = <T>(f: LazyFunction<T>): T => f();
+    export const force = <T>(f: Suspension<T>): T => f();
 
     export const raise = (e: string) => { throw new Error(e) };
 }

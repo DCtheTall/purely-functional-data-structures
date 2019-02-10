@@ -49,7 +49,50 @@ export namespace ScheduledBinomialHeap {
                 link(<Tree<T>>d, <Tree<T>>Stream.head(ds)),
                 Stream.tail(ds)))));
 
-    // const mrg = <T>(ds1: DigitStream<T>, ds2: DigitStream<T>): DigitStream<T> => {}
+    const mrg = <T>(ds1: DigitStream<T>, ds2: DigitStream<T>): DigitStream<T> =>
+        (Stream.isEmpty(ds1) ? ds2
+        : (Stream.isEmpty(ds2) ? ds1
+        : (isZero(List.head(ds1)) ?
+            Stream.cons(
+                Stream.head(ds2),
+                mrg(Stream.tail(ds1), Stream.tail(ds2)))
+        : (isZero(List.head(ds2)) ?
+            Stream.cons(
+                Stream.head(ds1),
+                mrg(Stream.tail(ds1), Stream.tail(ds2)))
+        : Stream.cons(
+            Zero,
+            insTree(
+                link(<Tree<T>>Stream.head(ds1), <Tree<T>>Stream.head(ds2)),
+                mrg(Stream.tail(ds1), Stream.tail(ds2))))))));
+
+    const normalize = <T>(ds: DigitStream<T>): DigitStream<T> => {
+        if (!Stream.isEmpty(ds))
+            normalize(Stream.tail(ds));
+        return ds;
+    }
+
+    // Returns a stream whose head is the minimum tree in the digit stream
+    const removeMinTree = <T>(ds: DigitStream<T>): DigitStream<T> => {
+        if (Stream.isEmpty(ds))
+            Util.raise('Empty');
+        if (Stream.isEmpty(Stream.tail(ds)) && !isZero(Stream.head(ds)))
+            return ds;
+        let val = removeMinTree(Stream.tail(ds));
+        if (isZero(Stream.head(ds))) {
+            return Stream.cons(
+                Stream.head(val),
+                Stream.cons(Zero, Stream.tail(ds)));
+        }
+        if (valueof(<Tree<T>>Stream.head(ds)) <=
+            valueof(<Tree<T>>Stream.head(val)))
+                return Stream.cons(
+                    Stream.head(ds),
+                    Stream.cons(Zero, Stream.tail(ds)));
+        return Stream.cons(
+            Stream.head(val),
+            Stream.cons(Stream.head(ds), Stream.tail(val)));
+    }
 
     type Schedule<T> = List.List<DigitStream<T>>;
 
@@ -62,10 +105,41 @@ export namespace ScheduledBinomialHeap {
 
     const schedule = <T>(H: Heap<T>) => <Schedule<T>>H((d, s) => s);
 
+    const exec = <T>(s: Schedule<T>): Schedule<T> =>
+        (List.isEmpty(s) ?
+            List.EmptyList
+        : (isZero(Stream.head(List.head(s))) ?
+            List.cons(
+                Stream.tail(List.head(s)),
+                List.tail(s))
+        : List.tail(s)));
+
     const createHeap = <T>(d: DigitStream<T>, s: Schedule<T>) =>
         (<Heap<T>>(H => H(d, s)));
 
     export const Empty = createHeap(Stream.EmptyStream, List.EmptyList);
 
     export const isEmpty = <T>(H: Heap<T>) => Stream.isEmpty(digits(H));
+
+    export const insert = <T>(x: T, H: Heap<T>): Heap<T> => {
+        let ds = insTree(createTree(x, List.EmptyList), digits(H));
+        return createHeap(ds, exec(exec(List.cons(ds, schedule(H)))));
+    };
+
+    export const merge = <T>(h1: Heap<T>, h2: Heap<T>): Heap<T> =>
+        createHeap(
+            normalize(mrg(digits(h1), digits(h2))),
+            List.EmptyList);
+
+    export const findMin = <T>(H: Heap<T>): T =>
+        valueof(<Tree<T>>Stream.head(removeMinTree(digits(H))));
+
+    export const deleteMin = <T>(H: Heap<T>): Heap<T> => {
+        let val = removeMinTree(digits(H));
+        return createHeap(
+            normalize(mrg(
+                Stream.listToStream(children(<Tree<T>>Stream.head(val))),
+                Stream.tail(val))),
+            List.EmptyList);
+    }
 }

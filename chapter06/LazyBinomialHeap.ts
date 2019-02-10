@@ -18,7 +18,7 @@ export namespace LazyBinomialHeap {
     type Selector<T> = (rank: number, val: T, children: TreeList<T>) =>
         (number | T | TreeList<T>);
 
-    export type Heap<T> = Util.LazyFunction<TreeList<T>>;
+    export type Heap<T> = Util.Suspension<TreeList<T>>;
 
     export const EmptyHeap = Util.lazy(() => List.EmptyList);
 

@@ -87,4 +87,9 @@ export namespace List {
                 List.tail(L),
                 callback,
                 callback(initial, List.head(L))));
+
+    export const map =
+        <S, T>(L: List<T>, callback: (el: T) => S): List<S> =>
+            (isEmpty(L) ? EmptyList
+            : cons(callback(head(L)), map(tail(L), callback)));
 }

@@ -10,7 +10,7 @@ import { Util } from '../util';
 export namespace BottomUpMergesort {
     type NestedList<T> = List.List<List.List<T>>;
 
-    type SuspendedNestedList<T> = Util.LazyFunction<NestedList<T>>;
+    type SuspendedNestedList<T> = Util.Suspension<NestedList<T>>;
 
     export type Sortable<T> = (f: Selector<T>) => (number | SuspendedNestedList<T>);
 

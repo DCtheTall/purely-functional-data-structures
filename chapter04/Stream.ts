@@ -4,6 +4,7 @@ Functional lazy Stream package.
 
 */
 
+import { List } from '../chapter02/List';
 import { Util } from '../util';
 
 export namespace Stream {
@@ -11,7 +12,7 @@ export namespace Stream {
 
     type Selector<T> = (e: T, S: Stream<T>) => (T | Stream<T>);
 
-    export type Stream<T> = Util.LazyFunction<StreamCell<T>>;
+    export type Stream<T> = Util.Suspension<StreamCell<T>>;
 
     const EmptyCell: StreamCell<any> = null;
 
@@ -108,6 +109,10 @@ export namespace Stream {
     export const length = (S: Stream<any>): number =>
         (isEmpty(S) ? 0
         : 1 + length(tail(S)));
+
+    export const listToStream = <T>(L: List.List<T>) =>
+        (List.isEmpty(L) ? EmptyStream
+        : Stream.cons(List.head(L), listToStream(List.tail(L))));
 }
 
 
