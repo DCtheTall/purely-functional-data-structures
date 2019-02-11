@@ -118,8 +118,8 @@ export namespace HoodMelvilleQueue {
             }
             return createReversing(
                 sizeofReversing(rev) + 1,
-                List.cons(List.head(front2(rev)), front1(rev)),
-                List.tail(front2(rev)),
+                List.tail(front1(rev)),
+                List.cons(List.head(front1(rev)), front2(rev)),
                 List.tail(rear1(rev)),
                 List.cons(List.head(rear1(rev)), rear2(rev)));
         }
