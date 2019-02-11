@@ -6,6 +6,7 @@ to support operations that run in O(1) time in the worst case.
 */
 
 import { List } from '../chapter02/List';
+import {Util} from '../util';
 
 export namespace HoodMelvilleQueue {
     enum State {
@@ -80,11 +81,20 @@ export namespace HoodMelvilleQueue {
     export type Queue<T> = (f: Selector<T>) =>
         (number | List.List<T> | RotationState<T>);
 
-    const frontLen = (Q: Queue<any>) => <number>Q((fL, f, rs, rL, r) => fL);
-
     type Selector<T> =
         (fLen: number, f: List.List<T>, s: RotationState<T>, rLen: number,
             r: List.List<T>) => (number | List.List<T> | RotationState<T>);
+
+    const frontLen = (Q: Queue<any>) => <number>Q((fL, f, rs, rL, r) => fL);
+
+    const front = <T>(Q: Queue<T>) => <List.List<T>>Q((fL, f, rs, r, rL) => f);
+
+    const queueState = <T>(Q: Queue<T>) =>
+        (<RotationState<T>>Q((fL, f, rs, r, rL) => rs));
+
+    const rearLen = (Q: Queue<any>) => <number>Q((fL, f, rs, rL, r) => rL);
+
+    const rear = <T>(Q: Queue<T>) => <List.List<T>>Q((fL, f, rs, rL, r) => r);
 
     const createQueue =
         <T>(fLen: number, f: List.List<T>, rs: RotationState<T>, rLen: number,
@@ -124,5 +134,81 @@ export namespace HoodMelvilleQueue {
         return rs;
     };
 
-    // TODO rest
+    const invalidate = <T>(rs: RotationState<T>): RotationState<T> => {
+        if (state(rs) === State.Reversing) {
+            let rev = <Reversing<T>>rs;
+            return createReversing(
+                sizeofReversing(rev) - 1,
+                front1(rev),
+                front2(rev),
+                rear1(rev),
+                rear2(rev));
+        }
+        if (state(rs) === State.Appending) {
+            let ap = <Appending<T>>rs;
+            if (sizeofAppending(ap) === 0) {
+                return createDone(appendingRear(ap));
+            }
+            return createAppending(
+                sizeofAppending(ap) - 1,
+                appendingFront(ap),
+                appendingRear(ap));
+        }
+        return rs;
+    }
+
+    const exec2 = <T>(Q: Queue<T>): Queue<T> => {
+        let newState = exec(exec(queueState(Q)));
+        if (state(newState) === State.Done) {
+            return createQueue(
+                frontLen(Q),
+                front(Q),
+                Idle,
+                rearLen(Q),
+                rear(Q));
+        }
+        return createQueue(
+            frontLen(Q),
+            front(Q),
+            newState,
+            rearLen(Q),
+            rear(Q));
+    };
+
+    const check = <T>(Q: Queue<T>): Queue<T> =>
+        (frontLen(Q) < rearLen(Q) ? exec2(Q)
+        : createQueue(
+            frontLen(Q) + rearLen(Q),
+            front(Q),
+            createReversing(
+                0,
+                front(Q),
+                List.EmptyList,
+                rear(Q),
+                List.EmptyList),
+            0,
+            List.EmptyList));
+
+    export const snoc = <T>(x: T, Q: Queue<T>): Queue<T> =>
+        check(createQueue(
+            frontLen(Q),
+            front(Q),
+            queueState(Q),
+            rearLen(Q) + 1,
+            rear(Q)));
+
+    export const head = <T>(Q: Queue<T>): T =>
+        (List.isEmpty(front(Q)) ?
+            Util.raise('Empty')
+        : List.head(front(Q)));
+
+    export const tail = <T>(Q: Queue<T>): Queue<T> =>
+        (List.isEmpty(front(Q)) ?
+            Util.raise('Empty')
+        : check(createQueue(
+            frontLen(Q) - 1,
+            List.tail(front(Q)),
+            invalidate(queueState(Q)),
+            rearLen(Q),
+            rear(Q))));
 }
