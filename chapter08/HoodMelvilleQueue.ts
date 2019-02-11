@@ -74,6 +74,8 @@ export namespace HoodMelvilleQueue {
 
     const createDone = <T>(L: List.List<T>) => (<Done<T>>(D => D(State.Done, L)));
 
+    const finishedList = <T>(D: Done<T>) => <List.List<T>>D((rs, L) => L);
+
     type RotationState<T> = Idle | Reversing<T> | Appending<T> | Done<T>;
 
     const state = (R: RotationState<any>) => <State>(<any>R)((s: State) => s);
@@ -162,7 +164,7 @@ export namespace HoodMelvilleQueue {
         if (state(newState) === State.Done) {
             return createQueue(
                 frontLen(Q),
-                front(Q),
+                finishedList(<Done<T>>newState),
                 Idle,
                 rearLen(Q),
                 rear(Q));
@@ -176,7 +178,8 @@ export namespace HoodMelvilleQueue {
     };
 
     const check = <T>(Q: Queue<T>): Queue<T> =>
-        (frontLen(Q) < rearLen(Q) ? exec2(Q)
+        (frontLen(Q) < rearLen(Q) ?
+            exec2(Q)
         : createQueue(
             frontLen(Q) + rearLen(Q),
             front(Q),
