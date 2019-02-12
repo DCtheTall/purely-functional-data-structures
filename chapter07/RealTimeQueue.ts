@@ -28,7 +28,7 @@ export namespace RealTimeQueue {
     const createQueue = <T>(f: Stream.Stream<T>, r: List.List<T>, s: Stream.Stream<T>) =>
         (<Queue<T>>(Q => Q(f, r, s)));
 
-    const EmptyQueue: Queue<any> = createQueue(
+    export const EmptyQueue: Queue<any> = createQueue(
         Stream.EmptyStream, List.EmptyList, Stream.EmptyStream);
 
     const isEmpty = (Q: Queue<any>) => Stream.isEmpty(front(Q));

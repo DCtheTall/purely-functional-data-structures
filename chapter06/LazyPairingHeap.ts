@@ -12,7 +12,7 @@ import { Util } from '../util';
 export namespace LazyPairingHeap {
     export type Heap<T> = (f: Selector<T>) => (T | Heap<T> | SuspendedHeap<T>);
 
-    type SuspendedHeap<T> = Util.LazyFunction<Heap<T>>;
+    type SuspendedHeap<T> = Util.Suspension<Heap<T>>;
 
     type Selector<T> = (e: T, odd: Heap<T>, children: SuspendedHeap<T>) =>
         (T | Heap<T> | SuspendedHeap<T>);
