@@ -6,7 +6,7 @@ to support operations that run in O(1) time in the worst case.
 */
 
 import { List } from '../chapter02/List';
-import {Util} from '../util';
+import { Util } from '../util';
 
 export namespace HoodMelvilleQueue {
     enum State {
