@@ -9,8 +9,6 @@ without call stack overflow.
 
 */
 
-import { Util } from '../util';
-
 export namespace RedBlack {
     export type Color = 'Red' | 'Black';
 

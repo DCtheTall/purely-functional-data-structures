@@ -22,6 +22,10 @@ export namespace DenseBinaryNumber {
         : (isDigitZero(b) ? a
         : Digit.ZERO));
 
+    const and = (a: Digit, b: Digit): Digit =>
+        (isDigitZero(a) ?a
+        : b);
+
     const isBinaryZero = (b: Binary) => (b === Zero);
 
     export const inc = (b: Binary): Binary =>
@@ -43,7 +47,7 @@ export namespace DenseBinaryNumber {
     export const add = (x: Binary, y: Binary): Binary =>
         (isBinaryZero(x) ? y
         : (isBinaryZero(y) ? x
-        : ((!isDigitZero(List.head(x))) && (!isDigitZero(List.head(y))) ?
+        : ((!isDigitZero(and(List.head(x), List.head(y)))) ?
             List.cons(
                 Digit.ZERO,
                 inc(add(List.tail(x), List.tail(y))))
