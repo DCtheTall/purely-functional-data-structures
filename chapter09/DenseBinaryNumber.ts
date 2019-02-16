@@ -50,6 +50,4 @@ export namespace DenseBinaryNumber {
         : List.cons(
             xor(List.head(x), List.head(y)),
             add(List.tail(x), List.tail(y))))));
-
-    // TODO subtract
 }
