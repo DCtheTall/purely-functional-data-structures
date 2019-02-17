@@ -1,17 +1,18 @@
 /*
 
-A random access list which stores its
-values in a list of complete binary
-trees which only store data at the leaf
-nodes.
+Binary random access list which uses complete
+binary trees which only store data at the leaves.
+This implementation uses the sparse representation
+of binary numbers, and is a solution to exercise
+9.3.
 
 */
 
 import { List } from '../chapter02/List';
 import { Util } from '../util';
 
-export namespace BinaryAccessList {
-    enum TreeTypes {LEAF, NODE};
+export namespace SparseBinaryRandomAccessList {
+    enum TreeTypes { LEAF, NODE };
 
     type Leaf<T> = (f: LeafSelector<T>) => (TreeTypes.LEAF | T);
 
@@ -43,25 +44,9 @@ export namespace BinaryAccessList {
         (isLeaf(T) ? 1
         : <number>(<Node<any>>T)((t, s, l, r) => s));
 
-    enum Digits {ZERO, ONE};
+    export type RList<T> = List.List<Tree<T>>;
 
-    type Digit<T> =
-        ((f: (b: Digits.ZERO) => Digits.ZERO) => Digits.ZERO) |
-        ((f: (b: Digits.ONE, t: Tree<T>) => (Digits.ONE | Tree<T>)) => (Digits.ONE | Tree<T>));
-
-    const createZero = () => <Digit<any>>(D => D(Digits.ZERO));
-
-    const createOne = <T>(t: Tree<T>) => <Digit<T>>(D => D(Digits.ONE, t));
-
-    const digit = (d: Digit<any>) => <Digits>(<any>d)(b => b);
-
-    const tree = <T>(d: Digit<T>) => <Tree<T>>(<any>d)((b, t) => t);
-
-    const isZero = (d: Digit<any>) => (digit(d) === Digits.ZERO);
-
-    export type RList<T> = List.List<Digit<T>>;
-
-    export const EmptyRList = <List.List<Digit<any>>>List.EmptyList;
+    export const EmptyRList = <List.List<Tree<any>>>List.EmptyList;
 
     export const isEmpty = List.isEmpty;
 
@@ -70,14 +55,12 @@ export namespace BinaryAccessList {
 
     const consTree = <T>(t: Tree<T>, R: RList<T>): RList<T> =>
         (isEmpty(R) ?
-            List.cons(createOne(t), EmptyRList)
-        : (isZero(List.head(R)) ?
-            List.cons(createOne(t), List.tail(R))
-        : List.cons(
-            createZero(),
-            consTree(
-                (<Tree<T>>link(t, tree(List.head(R)))),
-                List.tail(R)))));
+            List.cons(t, EmptyRList)
+        : (size(t) < size(List.head(R)) ?
+            List.cons(t, R)
+        : consTree(
+            (<Tree<T>>link(t, List.head(R))),
+            List.tail(R))));
 
     type TreeRListTuple<T> =
         (f: (t: Tree<T>, R: RList<T>) => (Tree<T> | RList<T>)) => (Tree<T> | RList<T>);
@@ -92,17 +75,13 @@ export namespace BinaryAccessList {
     const unconsTree = <T>(R: RList<T>): TreeRListTuple<T> => {
         if (isEmpty(R))
             Util.raise('Empty');
-        if ((!isZero(List.head(R))) && isEmpty(List.tail(R)))
-            return createTuple(tree(List.head(R)), EmptyRList);
-        if (!isZero(List.head(R)))
-            return createTuple(
-                tree(List.head(R)),
-                List.cons(createZero(), List.tail(R)));
+        if (size(List.head(R)) === 1)
+            return createTuple(List.head(R), List.tail(R));
         let val = unconsTree(List.tail(R));
         return createTuple(
             left(<Node<T>>first(val)),
             List.cons(
-                createOne(right(<Node<T>>first(val))),
+                right(<Node<T>>first(val)),
                 second(val)));
     };
 
@@ -127,11 +106,9 @@ export namespace BinaryAccessList {
     export const lookup = <T>(i: number, R: RList<T>): T =>
         (isEmpty(R) ?
             Util.raise('Subscript')
-        : (isZero(List.head(R)) ?
-            lookup(i, List.tail(R))
-        : (i < size(tree(List.head(R))) ?
-            lookupTree(i, tree(List.head(R)))
-        : lookup(i - size(tree(List.head(R))), List.tail(R)))));
+        : (i < size(List.head(R)) ?
+            lookupTree(i, List.head(R))
+        : lookup(i - size(List.head(R)), List.tail(R))));
 
     const updateTree = <T>(i: number, y: T, t: Tree<T>) =>
         (i === 0 && isLeaf(t) ?
@@ -151,13 +128,11 @@ export namespace BinaryAccessList {
     export const update = <T>(i: number, y: T, R: RList<T>) =>
         (isEmpty(R) ?
             Util.raise('Subscript')
-        : (isZero(List.head(R)) ?
-            List.cons(createZero(), update(i, y, List.tail(R)))
-        : (i < size(tree(List.head(R))) ?
+        : (i < size(List.head(R)) ?
             List.cons(
-                createOne(updateTree(i, y, tree(List.head(R)))),
+                updateTree(i, y, List.head(R)),
                 List.tail(R))
         : List.cons(
             List.head(R),
-            update(i - size(tree(List.head(R))), y, List.tail(R))))));
+            update(i - size(List.head(R)), y, List.tail(R)))));
 }
