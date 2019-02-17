@@ -7,9 +7,10 @@ digit.
 */
 
 import { List } from '../chapter02/List';
+import { Util } from '../util';
 
 export namespace DenseBinaryNumber {
-    enum Digit {ZERO, ONE};
+    enum Digit { ZERO, ONE };
 
     export type Binary = List.List<Digit>;
 
@@ -36,11 +37,13 @@ export namespace DenseBinaryNumber {
         : List.cons(Digit.ZERO, inc(List.tail(b)))));
 
     export const dec = (b: Binary): Binary =>
-        ((!isDigitZero(List.head(b))) && isBinaryZero(List.tail(b)) ?
+        (isBinaryZero(b) ?
+            Util.raise('OutOfBounds')
+        : ((!isDigitZero(List.head(b))) && isBinaryZero(List.tail(b)) ?
             Zero
         : (!isDigitZero(List.head(b)) ?
             List.cons(Digit.ZERO, List.tail(b))
-        : List.cons(Digit.ONE, dec(List.tail(b)))));
+        : List.cons(Digit.ONE, dec(List.tail(b))))));
 
     // Book's implementation, more efficient than the natural number
     // implementation (O(log(N)) vs O(N))

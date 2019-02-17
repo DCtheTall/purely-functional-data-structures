@@ -4,7 +4,8 @@ Binary random access list which uses complete
 binary trees which only store data at the leaves.
 This implementation uses the sparse representation
 of binary numbers, and is a solution to exercise
-9.3.
+9.3. All operations also run in O(log(N)) time in
+the worst case.
 
 */
 

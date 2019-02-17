@@ -3,7 +3,8 @@
 A random access list which stores its
 values in a list of complete binary
 trees which only store data at the leaf
-nodes.
+nodes. All operations run in O(log(N)) time
+in the worst case.
 
 */
 
