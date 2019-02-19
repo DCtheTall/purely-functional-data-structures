@@ -18,6 +18,12 @@ Need to test:
 - Functions like unconsTree (see binary random access list) which use: let val = recursive call then uses it as
   arguments in a later application.
 
+TODO:
+- Extend EvaluationStack to a class which can receive either RecursiveCall or DelayedEvaluation
+  and handles processing the next object in the stack for better separation of concerns.
+- Create ExecutionFork class which can be pushed onto the stack for multiple execution traces
+  and try to execute forks without function recursion.
+
 */
 
 interface RecursiveFunction<T> {
@@ -48,7 +54,7 @@ class DelayedEvaluation<T> {
     public readonly func: RecursiveFunction<T>,
     ...args: any[]
   ) {
-    args.forEach((arg: any, index: number) => {
+    args.forEach((arg: any) => {
       if (arg instanceof RecursiveCall || arg instanceof DelayedEvaluation) {
         this.nextExecution_ = <RecursiveCall<T> | DelayedEvaluation<T>>arg;
       }
@@ -89,11 +95,11 @@ export function evaluateAfterRecursion<T>(func: FunctionThatReturns<T>, ...args:
   return new DelayedEvaluation(func, ...args);
 }
 
-type EvalStack<T> = Array<DelayedEvaluation<T>>;
+type EvaluationStack<T> = Array<DelayedEvaluation<T>>;
 
 export function trampoline<T>(func: RecursiveFunction<T>): FunctionThatReturns<T> {
   const returnVal = <FunctionThatReturns<T>>((...args: any[]) => {
-    const stack = <EvalStack<T>>[];
+    const stack = <EvaluationStack<T>>[];
     let res = func(...args);
     const emptyStack = () => {
       while (stack.length > 0) {
