@@ -15,8 +15,8 @@ Limitations so far:
   if necessary.
 
 Need to test:
-- Functions like unconsTree which use: let val = recursive call then uses it as arguments
-  in a later application.
+- Functions like unconsTree (see binary random access list) which use: let val = recursive call then uses it as
+  arguments in a later application.
 
 */
 
