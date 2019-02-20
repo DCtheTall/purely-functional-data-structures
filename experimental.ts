@@ -1,72 +1,120 @@
 /*
 
-Experimenting with different implementations of trampolining
+Experimental code for implementing a call stack in JS in order
+to allow for recursion that is bounded by the working memory of
+the process and not the JavaScript call stack.
 
-Supports:
-- self recursive functions.
-- Recursing with different trampolined functions without stack overflow
-- when recursive cases are function applications with the recursive call,
-  e.g. binary tree insert.
-
-Limitations so far:
-- Only tail calls.
-- Does not support when recursive call involves multiple calls to a recursive function
-  e.g. balance = (T: AVLTreeNode) => call balance twice on children of T then rotate
-  if necessary.
-
-Need to test:
-- Functions like unconsTree which use: let val = recursive call then uses it as arguments
-  in a later application.
+There is some refactoring but so far this works for any tail call
+recursions.
 
 */
 
+type FrameReturnValue<T> = T | StackFrame<T>;
+
 interface RecursiveFunction<T> {
-  (...args: any[]): T | RecursiveCall<T> | DelayedEvaluation<T>;
+  (...args: any[]): FrameReturnValue<T>;
   originalFunction?: RecursiveFunction<T>;
 }
 
-class RecursiveCall<T> {
-  public readonly args;
+type VoidFunctionOf<T> = (_: T) => void;
+
+class StackFrame<T> {
+  public readonly args: any[];
+  private sendEvaluatedResult: VoidFunctionOf<T>;
+  private numberOfPendingArguments: number;
 
   constructor(
-    public readonly func: RecursiveFunction<T>,
+    private readonly func: RecursiveFunction<T>,
     ...args: any[]
   ) {
     this.args = args;
-  }
-}
-
-export function recurse<T>(func: RecursiveFunction<T>, ...args: any[]): RecursiveCall<T> {
-  return new RecursiveCall<T>(func, ...args);
-}
-
-class DelayedEvaluation<T> {
-  private nextExecution_;
-  private args;
-
-  constructor(
-    public readonly func: RecursiveFunction<T>,
-    ...args: any[]
-  ) {
-    args.forEach((arg: any, index: number) => {
-      if (arg instanceof RecursiveCall || arg instanceof DelayedEvaluation) {
-        this.nextExecution_ = <RecursiveCall<T> | DelayedEvaluation<T>>arg;
+    this.numberOfPendingArguments = 0;
+    args.forEach((arg: any, i: number) => {
+      if (arg instanceof StackFrame) {
+        this.numberOfPendingArguments++;
+        // TODO instead of creating fn, use a pointer to the which argument array slot to overwrite
+        arg.setSendEvaluatedResult((result: FrameReturnValue<T>) => {
+          this.args[i] = result;
+          if (result instanceof StackFrame) {
+            result.setSendEvaluatedResult(arg.sendEvaluatedResult);
+          } else {
+            this.numberOfPendingArguments--;
+          }
+        });
       }
     });
-    this.args = args;
   }
 
-  get nextExecution() {
-    return this.nextExecution_;
+  // TODO refactor using parent pointer instead of creating a function for this
+  private setSendEvaluatedResult(func: VoidFunctionOf<T>) {
+    this.sendEvaluatedResult = func;
   }
 
-  public applyResult(thisArg: any, evaluatedRecursiveCall: T): T {
-    return this.func.apply(thisArg, this.args.map((arg: any) => {
-      if (arg instanceof RecursiveCall) {
-        return evaluatedRecursiveCall;
+  public shouldDelayExecution(): boolean {
+    return this.numberOfPendingArguments !== 0;
+  }
+
+  public getUnevaluatedArguments(): StackFrame<T>[] {
+    // TODO refactor into defined fn and use bind in constructor
+    const unevaluatedArgs: StackFrame<T>[] = [];
+    for (const arg of this.args) {
+      if (arg instanceof StackFrame) {
+        unevaluatedArgs.push(arg);
       }
-      return arg;
-    }));
+    }
+    return unevaluatedArgs;
+  }
+
+  public applyResultsToFunction(thisArg: any): FrameReturnValue<T> {
+    const func = this.func.originalFunction || this.func;
+    const result = func.apply(thisArg, this.args);
+    if (this.sendEvaluatedResult !== undefined) {
+      this.sendEvaluatedResult(result);
+      return null;
+    }
+    return result;
+  }
+}
+
+export function call<T>(
+  func: RecursiveFunction<T>,
+  ...args: any[]
+): StackFrame<T> {
+  return new StackFrame<T>(func, ...args);
+}
+
+class CallStack<T> {
+  private readonly frames: StackFrame<T>[];
+
+  constructor(first: StackFrame<T>) {
+    this.frames = [first];
+  }
+
+  public push(frame: StackFrame<T>) {
+    this.frames.push(frame);
+  }
+
+  public evaluate(thisArg: any = null): T {
+    let cur: FrameReturnValue<T>;
+    OUTER:
+    while (this.frames.length !== 0) {
+      cur = this.frames.pop();
+      if (cur.shouldDelayExecution()) {
+        const unevaluatedArgs = cur.getUnevaluatedArguments();
+        this.frames.push(cur, ...unevaluatedArgs);
+        continue;
+      }
+      let evaluated = cur.applyResultsToFunction(thisArg);
+      while (evaluated === null) {
+        cur = this.frames.pop();
+        if (cur.shouldDelayExecution()) {
+          this.frames.push(cur);
+          continue OUTER;
+        }
+        evaluated = cur.applyResultsToFunction(thisArg);
+      }
+      return <T>evaluated;
+    }
   }
 }
 
@@ -75,48 +123,30 @@ interface FunctionThatReturns<T> {
   originalFunction?: RecursiveFunction<T>;
 }
 
-function isRecursiveCallOrDelayedEval(o: any): boolean {
-  return (o instanceof RecursiveCall || o instanceof DelayedEvaluation)
-}
-
-export function evaluateAfterRecursion<T>(func: FunctionThatReturns<T>, ...args: any[]) {
-  const delayedExecutions = args.filter(arg => isRecursiveCallOrDelayedEval(arg));
-  if (1 !== delayedExecutions.length) {
-    throw new Error(
-      'evaluateAfterRecursion must have exactly one argument that '
-      + 'is an invocation of either recurse or evaluateAfterRecursion.');
-  }
-  return new DelayedEvaluation(func, ...args);
-}
-
-type EvalStack<T> = Array<DelayedEvaluation<T>>;
-
-export function trampoline<T>(func: RecursiveFunction<T>): FunctionThatReturns<T> {
-  const returnVal = <FunctionThatReturns<T>>((...args: any[]) => {
-    const stack = <EvalStack<T>>[];
-    let res = func(...args);
-    const emptyStack = () => {
-      while (stack.length > 0) {
-        res = stack.pop().applyResult(null, <T>res);
-      }
-    };
-
-    while (isRecursiveCallOrDelayedEval(res)) {
-      if (res instanceof RecursiveCall) {
-        if (res.func.originalFunction) {
-          res = res.func.originalFunction(...res.args);
-          continue;
-        }
-        res = res.func(...res.args);
-      } else {
-        stack.push(<DelayedEvaluation<T>>res);
-        res = (<DelayedEvaluation<T>>res).nextExecution;
-      }
-      if (!isRecursiveCallOrDelayedEval(res)) emptyStack();
-    }
-    emptyStack();
-    return res;
+export function recursive<T>(
+  func: RecursiveFunction<T>,
+  thisArg: any = null,
+): FunctionThatReturns<T> {
+  const recursiveFunction = <FunctionThatReturns<T>>((...args: any[]): T => {
+    const firstEval = func(...args);
+    if (!(firstEval instanceof StackFrame)) return firstEval;
+    const stack = new CallStack<T>(firstEval);
+    return stack.evaluate(thisArg);
   });
-  returnVal.originalFunction = func;
-  return returnVal;
+  recursiveFunction.originalFunction = func;
+  return recursiveFunction;
 }
+
+// Example functions
+
+const add = (x: number, y: number) => x + y;
+
+const fib = recursive((n: number) =>
+  ((n === 1) || (n === 2) ? (n - 1)
+  : call(add, call(fib, n - 1), call(fib, n - 2))));
+
+const mult = (x: number, y: number) => x * y;
+
+const fact = recursive((n: number) =>
+  (n === 0 ? 1
+  : call(mult, n, call(fact, n - 1))));
