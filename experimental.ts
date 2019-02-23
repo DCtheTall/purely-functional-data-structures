@@ -9,23 +9,28 @@ recursions.
 
 */
 
-type FrameReturnValue<T> = T | StackFrame<T>;
+type FrameRetValue<T> = T | StackFrame<T>;
 
 interface RecursiveFunction<T> {
-  (...args: any[]): FrameReturnValue<T>;
+  (...args: any[]): FrameRetValue<T>;
+  originalFunction?: RecursiveFunction<T>;
+}
+
+interface FunctionThatReturns<T> {
+  (...args: any[]): T;
   originalFunction?: RecursiveFunction<T>;
 }
 
 type VoidFunctionOf<T> = (_: T) => void;
 
 class StackFrame<T> {
-  public readonly args: any[];
   private sendEvaluatedResult: VoidFunctionOf<T>;
   private numberOfPendingArguments: number;
+  private context: any;
 
   constructor(
     private readonly func: RecursiveFunction<T>,
-    ...args: any[]
+    public readonly args: any[]
   ) {
     this.args = args;
     this.numberOfPendingArguments = 0;
@@ -33,7 +38,7 @@ class StackFrame<T> {
       if (arg instanceof StackFrame) {
         this.numberOfPendingArguments++;
         // TODO instead of creating fn, use a pointer to the which argument array slot to overwrite
-        arg.setSendEvaluatedResult((result: FrameReturnValue<T>) => {
+        arg.setSendEvaluatedResult((result: FrameRetValue<T>) => {
           this.args[i] = result;
           if (result instanceof StackFrame) {
             result.setSendEvaluatedResult(arg.sendEvaluatedResult);
@@ -43,6 +48,15 @@ class StackFrame<T> {
         });
       }
     });
+  }
+
+  public static withContext<T>(thisArg: any, func, ...args: any[]) {
+    return new StackFrame<T>(func, args).setContext(thisArg);
+  }
+
+  private setContext(thisArg: any): StackFrame<T> {
+    this.context = thisArg;
+    return this;
   }
 
   // TODO refactor using parent pointer instead of creating a function for this
@@ -65,9 +79,9 @@ class StackFrame<T> {
     return unevaluatedArgs;
   }
 
-  public applyResultsToFunction(thisArg: any): FrameReturnValue<T> {
+  public applyResultsToFunction(): FrameRetValue<T> {
     const func = this.func.originalFunction || this.func;
-    const result = func.apply(thisArg, this.args);
+    const result = func.apply(this.context, this.args);
     if (this.sendEvaluatedResult !== undefined) {
       this.sendEvaluatedResult(result);
       return null;
@@ -76,12 +90,13 @@ class StackFrame<T> {
   }
 }
 
-export function call<T>(
-  func: RecursiveFunction<T>,
-  ...args: any[]
-): StackFrame<T> {
-  return new StackFrame<T>(func, ...args);
-}
+export const call =
+  <T>(func: RecursiveFunction<T>, ...args: any[]): StackFrame<T> =>
+    new StackFrame<T>(func, args);
+
+export const callWithContext =
+  <T>(thisArg: any, func: RecursiveFunction<T>, ...args: any[]): StackFrame<T> =>
+    StackFrame.withContext<T>(thisArg, func, args);
 
 class CallStack<T> {
   private readonly frames: StackFrame<T>[];
@@ -94,44 +109,38 @@ class CallStack<T> {
     this.frames.push(frame);
   }
 
-  public evaluate(thisArg: any = null): T {
-    let cur: FrameReturnValue<T>;
+  public evaluate(): T {
+    let cur: FrameRetValue<T>;
     OUTER:
     while (this.frames.length !== 0) {
       cur = this.frames.pop();
       if (cur.shouldDelayExecution()) {
         const unevaluatedArgs = cur.getUnevaluatedArguments();
-        this.frames.push(cur, ...unevaluatedArgs);
+        this.frames.push(cur);
+        this.frames.push.apply(this.frames, unevaluatedArgs);
         continue;
       }
-      let evaluated = cur.applyResultsToFunction(thisArg);
+      let evaluated = cur.applyResultsToFunction();
       while (evaluated === null) {
         cur = this.frames.pop();
         if (cur.shouldDelayExecution()) {
           this.frames.push(cur);
           continue OUTER;
         }
-        evaluated = cur.applyResultsToFunction(thisArg);
+        evaluated = cur.applyResultsToFunction();
       }
       return <T>evaluated;
     }
   }
 }
 
-interface FunctionThatReturns<T> {
-  (...args: any[]): T;
-  originalFunction?: RecursiveFunction<T>;
-}
-
-export function recursive<T>(
-  func: RecursiveFunction<T>,
-  thisArg: any = null,
-): FunctionThatReturns<T> {
+export function recursive<T>(func: RecursiveFunction<T>, thisArg: any = null): FunctionThatReturns<T> {
   const recursiveFunction = <FunctionThatReturns<T>>((...args: any[]): T => {
-    const firstEval = func(...args);
-    if (!(firstEval instanceof StackFrame)) return firstEval;
-    const stack = new CallStack<T>(firstEval);
-    return stack.evaluate(thisArg);
+    const firstEval = func.apply(thisArg, args);
+    if (!(firstEval instanceof StackFrame)) {
+      return firstEval;
+    }
+    return new CallStack<T>(firstEval).evaluate();
   });
   recursiveFunction.originalFunction = func;
   return recursiveFunction;
@@ -152,14 +161,16 @@ const fact = recursive((n: number) =>
   : call(mult, n, call(fact, n - 1))));
 
 
-  const naiveFib = (n: number) => ((n === 1) || (n === 2) ? (n - 1)
-  : fib(n - 1) + fib(n - 2));
+  const naiveFib = (n: number) =>
+    ((n === 1) || (n === 2) ?
+      (n - 1)
+    : add(fib(n - 1), fib(n - 2)));
   console.time('naive');
-  let o1 = naiveFib(30);
+  let o1 = naiveFib(32);
   console.timeEnd('naive');
 
   console.time('my code');
-  let o2 = fib(30);
+  let o2 = fib(32);
   console.timeEnd('my code');
 
   console.log(o1, o2);
