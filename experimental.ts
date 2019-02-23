@@ -26,7 +26,8 @@ interface FunctionThatReturns<T> {
 class StackFrame<T> {
   private context: any;
   private parent: StackFrame<T>;
-  private readonly children: Map<StackFrame<T>, number> = new Map();
+  private parentArgIndex: number;
+  private numberOfPendingArguments: number;
 
   constructor(
     private readonly func: RecursiveFunction<T>,
@@ -35,11 +36,13 @@ class StackFrame<T> {
     this.args = args;
     this.context = NULL;
     this.parent = NULL;
+    this.numberOfPendingArguments = 0;
     let idx = 0;
     for (const arg of this.args) {
       if (arg instanceof StackFrame) {
         arg.parent = this;
-        this.children.set(arg, idx);
+        arg.parentArgIndex = idx;
+        this.numberOfPendingArguments++;
       }
       idx++;
     }
@@ -55,7 +58,7 @@ class StackFrame<T> {
   }
 
   public shouldDelayExecution(): boolean {
-    return this.children.size !== 0;
+    return this.numberOfPendingArguments !== 0;
   }
 
   public getUnevaluatedArguments(): StackFrame<T>[] {
@@ -76,15 +79,14 @@ class StackFrame<T> {
       return result;
     }
 
-    const idx = this.parent.children.get(this);
-    this.parent.children.delete(this);
-
     if (result instanceof StackFrame) {
       result.parent = this.parent;
-      result.parent.children.set(result, idx);
+      result.parentArgIndex = this.parentArgIndex
+    } else {
+      this.parent.numberOfPendingArguments--;
     }
 
-    this.parent.args[idx] = result;
+    this.parent.args[this.parentArgIndex] = result;
     return NULL;
   }
 }
