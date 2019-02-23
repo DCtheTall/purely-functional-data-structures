@@ -9,6 +9,8 @@ recursions.
 
 */
 
+const NULL = <any>Symbol('null'); // Need a unique symbol for null
+
 type FrameRetValue<T> = T | StackFrame<T>;
 
 interface RecursiveFunction<T> {
@@ -21,36 +23,29 @@ interface FunctionThatReturns<T> {
   originalFunction?: RecursiveFunction<T>;
 }
 
-type VoidFunctionOf<T> = (_: T) => void;
-
 class StackFrame<T> {
-  private sendEvaluatedResult: VoidFunctionOf<T>;
-  private numberOfPendingArguments: number;
   private context: any;
+  private parent: StackFrame<T>;
+  private readonly children: Map<StackFrame<T>, number> = new Map();
 
   constructor(
     private readonly func: RecursiveFunction<T>,
-    public readonly args: any[]
+    private readonly args: any[],
   ) {
     this.args = args;
-    this.numberOfPendingArguments = 0;
-    args.forEach((arg: any, i: number) => {
+    this.context = NULL;
+    this.parent = NULL;
+    let idx = 0;
+    for (const arg of this.args) {
       if (arg instanceof StackFrame) {
-        this.numberOfPendingArguments++;
-        // TODO instead of creating fn, use a pointer to the which argument array slot to overwrite
-        arg.setSendEvaluatedResult((result: FrameRetValue<T>) => {
-          this.args[i] = result;
-          if (result instanceof StackFrame) {
-            result.setSendEvaluatedResult(arg.sendEvaluatedResult);
-          } else {
-            this.numberOfPendingArguments--;
-          }
-        });
+        arg.parent = this;
+        this.children.set(arg, idx);
       }
-    });
+      idx++;
+    }
   }
 
-  public static withContext<T>(thisArg: any, func, ...args: any[]) {
+  public static withContext<T>(thisArg: any, func: RecursiveFunction<T>, ...args: any[]) {
     return new StackFrame<T>(func, args).setContext(thisArg);
   }
 
@@ -59,17 +54,11 @@ class StackFrame<T> {
     return this;
   }
 
-  // TODO refactor using parent pointer instead of creating a function for this
-  private setSendEvaluatedResult(func: VoidFunctionOf<T>) {
-    this.sendEvaluatedResult = func;
-  }
-
   public shouldDelayExecution(): boolean {
-    return this.numberOfPendingArguments !== 0;
+    return this.children.size !== 0;
   }
 
   public getUnevaluatedArguments(): StackFrame<T>[] {
-    // TODO refactor into defined fn and use bind in constructor
     const unevaluatedArgs: StackFrame<T>[] = [];
     for (const arg of this.args) {
       if (arg instanceof StackFrame) {
@@ -79,14 +68,24 @@ class StackFrame<T> {
     return unevaluatedArgs;
   }
 
-  public applyResultsToFunction(): FrameRetValue<T> {
+  public evaluate(): FrameRetValue<T> {
     const func = this.func.originalFunction || this.func;
     const result = func.apply(this.context, this.args);
-    if (this.sendEvaluatedResult !== undefined) {
-      this.sendEvaluatedResult(result);
-      return null;
+
+    if (this.parent === NULL) {
+      return result;
     }
-    return result;
+
+    const idx = this.parent.children.get(this);
+    this.parent.children.delete(this);
+
+    if (result instanceof StackFrame) {
+      result.parent = this.parent;
+      result.parent.children.set(result, idx);
+    }
+
+    this.parent.args[idx] = result;
+    return NULL;
   }
 }
 
@@ -110,26 +109,28 @@ class CallStack<T> {
   }
 
   public evaluate(): T {
-    let cur: FrameRetValue<T>;
+    let cur: StackFrame<T> = NULL;
     OUTER:
     while (this.frames.length !== 0) {
       cur = this.frames.pop();
+
       if (cur.shouldDelayExecution()) {
-        const unevaluatedArgs = cur.getUnevaluatedArguments();
         this.frames.push(cur);
-        this.frames.push.apply(this.frames, unevaluatedArgs);
+        Array.prototype.push.apply(this.frames, cur.getUnevaluatedArguments());
         continue;
       }
-      let evaluated = cur.applyResultsToFunction();
-      while (evaluated === null) {
+
+      let result = cur.evaluate();
+      while (result === NULL) {
         cur = this.frames.pop();
         if (cur.shouldDelayExecution()) {
           this.frames.push(cur);
+          Array.prototype.push.apply(this.frames, cur.getUnevaluatedArguments());
           continue OUTER;
         }
-        evaluated = cur.applyResultsToFunction();
+        result = cur.evaluate();
       }
-      return <T>evaluated;
+      return <T>result;
     }
   }
 }
@@ -160,17 +161,16 @@ const fact = recursive((n: number) =>
   (n === 0 ? 1
   : call(mult, n, call(fact, n - 1))));
 
+const naiveFib = (n: number) =>
+  ((n === 1) || (n === 2) ? (n - 1)
+  : add(naiveFib(n - 1), naiveFib(n - 2)));
 
-  const naiveFib = (n: number) =>
-    ((n === 1) || (n === 2) ?
-      (n - 1)
-    : add(fib(n - 1), fib(n - 2)));
-  console.time('naive');
-  let o1 = naiveFib(32);
-  console.timeEnd('naive');
+console.time('naive');
+let o1 = naiveFib(30);
+console.timeEnd('naive');
 
-  console.time('my code');
-  let o2 = fib(32);
-  console.timeEnd('my code');
+console.time('my code');
+let o2 = fib(30);
+console.timeEnd('my code');
 
-  console.log(o1, o2);
+console.log(o1, o2);
