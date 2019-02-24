@@ -38,8 +38,8 @@ export namespace SkewBinaryNumber {
         : (List.head(B) === 1 ?
             List.tail(B)
         : List.cons(
-            Math.floor(List.head(B) / 2),
+            (List.head(B) >> 1),
             List.cons(
-                Math.floor(List.head(B) / 2),
+                (List.head(B) >> 1),
                 List.tail(B))))));
 }
