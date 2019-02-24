@@ -114,13 +114,16 @@ export namespace SkewBinomialHeap {
 
     // This can be improved to O(1) time with the ExplicitMin functor
     export const findMin = <T>(H: Heap<T>): T =>
-        root(List.head(removeMinTree(H)));
+        (isEmpty(H) ? Util.raise('EmptyHeap')
+        : root(List.head(removeMinTree(H))));
 
     const insertAll = <T>(xs: List.List<T>, H: Heap<T>): Heap<T> =>
         (List.isEmpty(xs) ? H
         : insertAll(List.tail(xs), insert(List.head(xs), H)));
 
     export const deleteMin = <T>(H: Heap<T>): Heap<T> => {
+        if (isEmpty(H))
+            Util.raise('EmptyHeap');
         let val = removeMinTree(H);
         return insertAll(
             values(List.head(val)),
