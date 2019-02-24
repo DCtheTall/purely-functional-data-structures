@@ -129,3 +129,68 @@ export namespace SkewBinomialHeap {
                 List.tail(val)));
     };
 }
+
+// Implementation with a remove() function. The heap is two SkewBinomialHeaps,
+// one to track the positive occurences, the other to track the negative occurrences.
+// When the min of both heaps match, we should delete them. This increases insert() back
+// to O(log(N)) time.
+export namespace HeapWithRemove {
+    type H<T> = SkewBinomialHeap.Heap<T>;
+
+    const EmptyH = SkewBinomialHeap.EmptyHeap;
+
+    const isEmptyHp = SkewBinomialHeap.isEmpty;
+
+    const findmin = SkewBinomialHeap.findMin;
+
+    const deletemin = SkewBinomialHeap.deleteMin;
+
+    const ins = SkewBinomialHeap.insert;
+
+    const mrg = SkewBinomialHeap.merge;
+
+    export type Heap<T> = (f: Selector<T>) => H<T>;
+
+    type Selector<T> = (pos: H<T>, neg: H<T>) => H<T>;
+
+    const positive = <T>(Hp: Heap<T>) => Hp((pos, neg) => pos);
+
+    const negative = <T>(Hp: Heap<T>) => Hp((pos, neg) => neg);
+
+    const createHeap = <T>(pos: H<T>, neg: H<T>) =>
+        (<Heap<T>>(h => h(pos, neg)));
+
+    export const EmptyHeap = createHeap<any>(EmptyH, EmptyH);
+
+    export const isEmpty = (Hp: Heap<any>) => isEmptyHp(positive(Hp));
+
+    const checkInvariant = (Hp: Heap<any>): Heap<any> =>
+        (findmin(positive(Hp)) === findmin(negative(Hp)) ?
+            createHeap(
+                deletemin(positive(Hp)),
+                deletemin(negative(Hp)))
+        : Hp);
+
+    export const insert = <T>(x: T, Hp: Heap<T>): Heap<T> =>
+        checkInvariant(createHeap(ins(x, positive(Hp)), negative(Hp)));
+
+    export const merge = <T>(H1: Heap<T>, H2: Heap<T>): Heap<T> =>
+        createHeap(
+            mrg(positive(H1), positive(H2)),
+            mrg(negative(H1), negative(H2)));
+
+    export const findMin = <T>(Hp: Heap<T>): T =>
+        findmin(positive(Hp));
+
+    export const deleteMin = <T>(Hp: Heap<T>): Heap<T> =>
+        checkInvariant(
+            createHeap(
+                deletemin(positive(Hp)),
+                negative(Hp)));
+
+    export const remove = <T>(x: T, Hp: Heap<T>): Heap<T> =>
+        checkInvariant(
+            createHeap(
+                positive(Hp),
+                ins(x, negative(Hp))));
+}
