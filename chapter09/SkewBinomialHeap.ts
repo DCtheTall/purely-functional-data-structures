@@ -168,11 +168,13 @@ export namespace HeapWithRemove {
     export const isEmpty = (Hp: Heap<any>) => isEmptyHp(positive(Hp));
 
     const checkInvariant = (Hp: Heap<any>): Heap<any> =>
-        (findmin(positive(Hp)) === findmin(negative(Hp)) ?
+        (isEmpty(Hp) || isEmptyHp(negative(Hp)) ?
+            Hp
+        : (findmin(positive(Hp)) === findmin(negative(Hp)) ?
             createHeap(
                 deletemin(positive(Hp)),
                 deletemin(negative(Hp)))
-        : Hp);
+        : Hp));
 
     export const insert = <T>(x: T, Hp: Heap<T>): Heap<T> =>
         checkInvariant(createHeap(ins(x, positive(Hp)), negative(Hp)));
