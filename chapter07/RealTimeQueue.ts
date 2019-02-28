@@ -31,7 +31,7 @@ export namespace RealTimeQueue {
     export const EmptyQueue: Queue<any> = createQueue(
         Stream.EmptyStream, List.EmptyList, Stream.EmptyStream);
 
-    const isEmpty = (Q: Queue<any>) => Stream.isEmpty(front(Q));
+    export const isEmpty = (Q: Queue<any>) => Stream.isEmpty(front(Q));
 
     // Rotation occurs when |r| = |f| + 1
     const rotate =
