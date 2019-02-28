@@ -35,12 +35,12 @@ export namespace CatenableList {
             Util.force(RealTimeQueue.head(Q))
         : link(
             Util.force(RealTimeQueue.head(Q)),
-            () => linkAll(RealTimeQueue.tail(Q))));
+            Util.lazy(() => linkAll(RealTimeQueue.tail(Q)))));
 
     export const concat = <T>(A: Cat<T>, B: Cat<T>): Cat<T> =>
         (isEmpty(A) ? B
         : (isEmpty(B) ? A
-        : link(A, () => B)));
+        : link(A, Util.lazy(() => B))));
 
     export const cons = <T>(x: T, C: Cat<T>): Cat<T> =>
         concat(createCat(x, RealTimeQueue.EmptyQueue), C);
