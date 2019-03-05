@@ -35,6 +35,8 @@ const staticImplements = <T>() => (_: T) => {};
 
 interface Heap<Instance, T> {
     new(...args: any[]): Instance;
+    Empty: Instance;
+    isEmpty(H: Instance): boolean;
     insert(x: T, H: Instance): Instance;
     merge(H1: Instance, H2: Instance): Instance;
     findMin(H: Instance): T;
@@ -47,7 +49,7 @@ class List<T> {
     constructor(
         public readonly head: T,
         public readonly tail: List<T>,
-    ) { }
+    ) {}
 
     public static get Empty() {
         return <List<any>>null;
@@ -74,8 +76,6 @@ class List<T> {
 // Heap implementation
 
 interface SkewBinomialHeapInstance<T> {
-    less: (h: SkewBinomialHeapInstance<T>) => boolean;
-    equal: (h: SkewBinomialHeapInstance<T>) => boolean;
     head: Tree<T>;
     tail: SkewBinomialHeapInstance<T>;
 }
@@ -107,14 +107,6 @@ class SkewBinomialHeap<T> extends List<Tree<T>> {
         public readonly tail: SkewBinomialHeap<T>,
     ) {
         super(head, tail);
-    }
-
-    public less(h: SkewBinomialHeap<T>): boolean {
-        return less(this.head, h.head);
-    }
-
-    public equal(h: SkewBinomialHeap<T>): boolean {
-        return equal(this.head, h.head);
     }
 
     public static get Empty(): SkewBinomialHeap<any> {
@@ -283,5 +275,84 @@ class SkewBinomialHeap<T> extends List<Tree<T>> {
             SkewBinomialHeap.merge(
                 SkewBinomialHeap.rev(val.head.children),
                 val.tail));
+    }
+}
+
+// Bootstrapped heap implementation
+
+interface BootstrappedHeapInstance<T> {
+    less: (h: BootstrappedHeapInstance<T>) => boolean;
+    equal: (h: BootstrappedHeapInstance<T>) => boolean;
+    min: T;
+    heap: PrimHeap<T>;
+}
+
+type PrimHeap<T> = SkewBinomialHeap<BootstrappedHeap<T>>
+
+@staticImplements<Heap<BootstrappedHeapInstance<T>, T>>()
+class BootstrappedHeap<T> {
+    constructor(
+        public readonly min: T,
+        public readonly heap: PrimHeap<T>,
+    ) {
+        Object.freeze(this);
+    }
+
+    public less(h: BootstrappedHeapInstance<T>): boolean {
+        return less(this.min, h.min);
+    }
+
+    public equal(h: BootstrappedHeapInstance<T>): boolean {
+        return equal(this.min, h.min);
+    }
+
+    public static get Empty() {
+        return <BootstrappedHeap<any>>null;
+    }
+
+    public static isEmpty(H: BootstrappedHeap<any>): boolean {
+        return H === BootstrappedHeap.Empty;
+    }
+
+    public static create<T>(min: T, heap: PrimHeap<T>): BootstrappedHeap<T> {
+        return new BootstrappedHeap(min, heap);
+    }
+
+    public static merge<T>(
+        H1: BootstrappedHeap<T>,
+        H2: BootstrappedHeap<T>,
+    ): BootstrappedHeap<T> {
+        if (BootstrappedHeap.isEmpty(H1))
+            return H2;
+        if (BootstrappedHeap.isEmpty(H2))
+            return H1;
+        if (leq(H1.min, H2.min))
+            return BootstrappedHeap.create(
+                H1.min,
+                SkewBinomialHeap.insert(H2, H1.heap))
+    }
+
+    public static insert<T>(x: T, H: BootstrappedHeap<T>): BootstrappedHeap<T> {
+        return BootstrappedHeap.merge(
+            H,
+            BootstrappedHeap.create(x, SkewBinomialHeap.Empty));
+    }
+
+    public static findMin<T>(H: BootstrappedHeap<T>): T {
+        if (BootstrappedHeap.isEmpty(H))
+            throw new Error('Empty');
+        return H.min;
+    }
+
+    public static deleteMin<T>(H: BootstrappedHeap<T>): BootstrappedHeap<T> {
+        if (BootstrappedHeap.isEmpty(H))
+            throw new Error('Empty');
+        if (SkewBinomialHeap.isEmpty(H.heap))
+            return BootstrappedHeap.Empty;
+        let h = SkewBinomialHeap.findMin(H.heap);
+        let p = SkewBinomialHeap.deleteMin(H.heap);
+        return BootstrappedHeap.create(
+            h.min,
+            SkewBinomialHeap.merge(h.heap, p));
     }
 }
