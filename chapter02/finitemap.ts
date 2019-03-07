@@ -17,41 +17,41 @@ export namespace FiniteMap {
 
     type Selector<S, T> = (key: S, value: T) => (S | T);
 
-    export type FiniteMap<S, T> = BinaryTree.Node<KeyValuePair<S, T>>;
+    export type Map<S, T> = BinaryTree.Node<KeyValuePair<S, T>>;
 
     export const EmptyMap = BinaryTree.EmptyTree;
 
     export const isEmpty = BinaryTree.isEmpty;
 
     const createMapElem =
-        <S, T>(left: FiniteMap<S, T>, val: KeyValuePair<S, T>, right: FiniteMap<S, T>): FiniteMap<S, T> =>
+        <S, T>(left: Map<S, T>, val: KeyValuePair<S, T>, right: Map<S, T>): Map<S, T> =>
             f => f(left, val, right);
 
     const createKvp = <S, T>(k: S, val: T): KeyValuePair<S, T> => (f => f(k, val));
 
-    export const key = <S, T>(kvp: KeyValuePair<S, T>): S => <S>kvp((x: S, y: T): S => x);
+    const key = <S, T>(kvp: KeyValuePair<S, T>): S => <S>kvp((x: S, y: T): S => x);
 
-    export const valueof = <S, T>(kvp: KeyValuePair<S, T>): T => <T>kvp((x: S, y: T): T => y);
+    const valueof = <S, T>(kvp: KeyValuePair<S, T>): T => <T>kvp((x: S, y: T): T => y);
 
-    export const get = <S, T>(M: FiniteMap<S, T>, k: S): T =>
+    export const lookup = <S, T>(M: Map<S, T>, k: S): T =>
         (BinaryTree.isEmpty(M) ? Util.raise('NotFound')
-        : (key(BinaryTree.valueof(M)) < k ? get(BinaryTree.left(M), k)
-        : (key(BinaryTree.valueof(M)) > k ? get(BinaryTree.right(M), k)
+        : (key(BinaryTree.valueof(M)) < k ? lookup(BinaryTree.left(M), k)
+        : (key(BinaryTree.valueof(M)) > k ? lookup(BinaryTree.right(M), k)
         : valueof(BinaryTree.valueof(M)))));
 
-    export const set = <S, T>(M: FiniteMap<S, T>, k: S, val: T): FiniteMap<S, T> =>
+    export const bind = <S, T>(k: S, val: T, M: Map<S, T>): Map<S, T> =>
         (BinaryTree.isEmpty(M) ?
-            <FiniteMap<S, T>>(f => f(BinaryTree.EmptyTree, createKvp(k, val), BinaryTree.EmptyTree))
+            <Map<S, T>>(f => f(BinaryTree.EmptyTree, createKvp(k, val), BinaryTree.EmptyTree))
         : (k < key(BinaryTree.valueof(M)) ?
             createMapElem(
-                set(BinaryTree.left(M), k, val),
+                bind(k, val, BinaryTree.left(M)),
                 BinaryTree.valueof(M),
                 BinaryTree.right(M))
         : (k > key(BinaryTree.valueof(M)) ?
             createMapElem(
                 BinaryTree.left(M),
                 BinaryTree.valueof(M),
-                set(BinaryTree.right(M), k, val))
+                bind(k, val, BinaryTree.right(M)))
         : createMapElem(
             BinaryTree.left(M),
             createKvp(k, val),
