@@ -17,41 +17,41 @@ export namespace Trie {
 
     enum Label { NONE, SOME };
 
-    type Elem<T> = (f: NoneSelector | SomeSelector<T>) => (Label | T);
+    type Elem = (f: NoneSelector | SomeSelector) => (Label | Char);
 
     type NoneSelector = (lbl: Label.NONE) => Label.NONE;
 
-    type SomeSelector<T> = (lbl: Label.SOME, x: T) => (Label | T);
+    type SomeSelector = (lbl: Label.SOME, x: Char) => (Label | Char);
 
-    const createNone = <T>() => <Elem<T>>((E: NoneSelector) => E(Label.NONE));
+    const createNone = () => <Elem>((E: NoneSelector) => E(Label.NONE));
 
-    const createSome = <T>(x: T) =>
-        (<Elem<T>>((E: SomeSelector<T>) => E(Label.SOME, x)));
+    const createSome = (x: Char) =>
+        (<Elem>((E: SomeSelector) => E(Label.SOME, x)));
 
-    const label = <T>(E: Elem<T>) => <Label>E(l => l);
+    const label = (E: Elem) => <Label>E(l => l);
 
-    const valueof = <T>(E: Elem<T>) => <T>E((l, e) => e);
+    const valueof = (E: Elem) => <Char>E((l, e) => e);
 
-    const isNone = (E: Elem<any>) => (label(E) === Label.NONE);
+    const isNone = (E: Elem) => (label(E) === Label.NONE);
 
-    export type Trie<T> = (f: TrieSelector<T>) => (Elem<T> | FiniteMap.Map<Char, Trie<T>>);
+    export type Trie = (f: TrieSelector) => (Elem | FiniteMap.Map<Char, Trie>);
 
-    type TrieSelector<T> = (el: Elem<T>, ch: FiniteMap.Map<Char, Trie<T>>) =>
-        (Elem<T> | FiniteMap.Map<Char, Trie<T>>);
+    type TrieSelector = (el: Elem, ch: FiniteMap.Map<Char, Trie>) =>
+        (Elem | FiniteMap.Map<Char, Trie>);
 
-    const createTrie = <T>(el: Elem<T>, ch: FiniteMap.Map<Char, Trie<T>>) =>
-        (<Trie<T>>(F => F(el, ch)));
+    const createTrie = (el: Elem, ch: FiniteMap.Map<Char, Trie>) =>
+        (<Trie>(F => F(el, ch)));
 
     export const EmptyTrie = createTrie(createNone(), FiniteMap.EmptyMap);
 
-    const element = <T>(Tr: Trie<T>) => <Elem<T>>Tr((e, ch) => e);
+    const element = (Tr: Trie) => <Elem>Tr((e, ch) => e);
 
-    const children = <T>(Tr: Trie<T>) => <FiniteMap.Map<Char, Trie<T>>>Tr((e, ch) => ch);
+    const children = (Tr: Trie) => <FiniteMap.Map<Char, Trie>>Tr((e, ch) => ch);
 
-    export const isEmpty = (Tr: Trie<any>) =>
+    export const isEmpty = (Tr: Trie) =>
         (isNone(element(Tr)) && FiniteMap.isEmpty(children(Tr)));
 
-    export const lookup = <T>(str: Str, Tr: Trie<T>): T =>
+    export const lookup = (str: Str, Tr: Trie): Char =>
         (isNone(element(Tr)) ?
             Util.raise('NotFound')
         : (List.isEmpty(str) ?
@@ -62,14 +62,14 @@ export namespace Trie {
                 children(Tr),
                 List.head(str)))));
 
-    export const bind = <T>(str: Str, x: T, Tr: Trie<T>): Trie<T> => {
+    export const bind = (str: Str, x: Char, Tr: Trie): Trie => {
         if (List.isEmpty(str))
             return createTrie(createSome(x), children(Tr));
-        let t: Trie<T>;
+        let t: Trie;
         try {
             t = FiniteMap.lookup(children(Tr), List.head(str));
         } catch (_) {
-            t = <Trie<T>>EmptyTrie;
+            t = <Trie>EmptyTrie;
         }
         let tprime = bind(List.tail(str), x, t);
         return createTrie(
