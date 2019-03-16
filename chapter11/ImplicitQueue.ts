@@ -15,6 +15,8 @@ export namespace ImplicitQueue {
 
     const second = <T>(tup: Tuple<T>) => tup((f, s) => s);
 
+    const createTuple = <T>(f: T, s: T) => <Tuple<T>>(tup => tup(f, s));
+
     enum Digits { ZERO, ONE, TWO };
 
     type Digit<T> = (f: (ZeroSelector | OneSelector<T> | TwoSelector<T>)) =>
@@ -31,9 +33,19 @@ export namespace ImplicitQueue {
 
     const isZero = (D: Digit<any>) => (digitLabel(D) === Digits.ZERO);
 
+    const isOne = (D: Digit<any>) => (digitLabel(D) === Digits.ONE);
+
+    const isTwo = (D: Digit<any>) => (digitLabel(D) === Digits.TWO);
+
     const digitValue = <T>(D: Digit<T>) => <T | Tuple<T>>D((l, v) => v);
 
     const createZero = () => <Digit<any>>((D: ZeroSelector) => D(Digits.ZERO));
+
+    const createOne = <T>(x: T) =>
+        (<Digit<T>>((D: OneSelector<T>) => D(Digits.ONE, x)));
+
+    const createTwo = <T>(f: T, s: T) =>
+        (<Digit<T>>((D: TwoSelector<T>) => D(Digits.TWO, createTuple(f, s))));
 
     enum Labels { SHALLOW, DEEP };
 
@@ -53,14 +65,64 @@ export namespace ImplicitQueue {
 
     const front = <T>(Q: Queue<T>) => <Digit<T>>Q((l, d) => d);
 
-    const queue = <T>(Q: Queue<T>) => <Util.Suspension<Queue<Tuple<T>>>>Q((l, d, q) => q);
+    const queue = <T>(Q: Queue<T>) => <Util.Suspension<Queue<Tuple<T>>>>Q((l, d, qs, r) => qs);
 
-    const rear = <T>(Q: Queue<T>) => <Digit<T>>Q((l, d, q, r) => r);
+    const rear = <T>(Q: Queue<T>) => <Digit<T>>Q((l, d, qs, r) => r);
 
     const createShallow = <T>(D: Digit<T>) =>
         (<Queue<T>>((Q: ShallowSelector<T>) => Q(Labels.SHALLOW, D)));
 
+    const createDeep =
+        <T>(f: Digit<T>, qs: Util.Suspension<Queue<Tuple<T>>>, r: Digit<T>) =>
+            (<Queue<T>>((Q: DeepSelector<T>) => Q(Labels.DEEP, f, qs, r)));
+
     export const EmptyQueue = createShallow(createZero());
 
     export const isEmpty = (Q: Queue<any>) => (isShallow(Q) && isZero(front(Q)));
+
+    export const snoc = <T>(Q: Queue<T>, y: T): Queue<T> =>
+        (isEmpty(Q) ?
+            createShallow(createOne(y))
+        : (isShallow(Q) ?
+            createDeep(
+                createTwo(digitValue(front(Q)), y),
+                Util.lazy(() => EmptyQueue),
+                createZero())
+        : (isZero(rear(Q)) ?
+            createDeep(
+                front(Q),
+                queue(Q),
+                createOne(y))
+        : createDeep(
+            front(Q),
+            Util.lazy(() => snoc(
+                Util.force(queue(Q)),
+                createTuple(digitValue(rear(Q)), y))),
+            createZero()))));
+
+    export const head = <T>(Q: Queue<T>): T =>
+        (isEmpty(Q) ?
+            Util.raise('EmptyQueue')
+        : (isOne(front(Q)) ?
+            <T>digitValue(front(Q))
+        : first(<Tuple<T>>digitValue(front(Q)))));
+
+    export const tail = <T>(Q: Queue<T>): Queue<T> => {
+        if (isEmpty(Q))
+            Util.raise('EmptyQueue');
+        if (isShallow(Q))
+            return EmptyQueue;
+        if (isTwo(front(Q)))
+            return createDeep(
+                createOne(second(<Tuple<T>>digitValue(front(Q)))),
+                queue(Q),
+                rear(Q));
+        if (isEmpty(Util.force(queue(Q))))
+            return createShallow(rear(Q));
+        let yz = head(Util.force(queue(Q)));
+        return createDeep(
+            createTwo(first(yz), second(yz)),
+            Util.lazy(() => tail(Util.force(queue(Q)))),
+            rear(Q));
+    };
 }
