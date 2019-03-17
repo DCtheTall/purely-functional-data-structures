@@ -151,4 +151,6 @@ export namespace RealTimeDeque {
             frontLen(D),
             front(D),
             frontSched(D));
+
+    export const size = (D: Deque<any>) => (frontLen(D) + rearLen(D));
 }
