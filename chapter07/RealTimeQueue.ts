@@ -54,7 +54,7 @@ export namespace RealTimeQueue {
         return createQueue(f, r, Stream.tail(s));
     };
 
-    export const snoc = <T>(e: T, Q: Queue<T>): Queue<T> =>
+    export const snoc = <T>(Q: Queue<T>, e: T): Queue<T> =>
         exec(front(Q), List.cons(e, rear(Q)), schedule(Q));
 
     export const head = <T>(Q: Queue<T>): T =>

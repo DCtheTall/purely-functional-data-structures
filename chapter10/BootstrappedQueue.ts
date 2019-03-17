@@ -45,7 +45,7 @@ export namespace BootstrappedQueue {
         : checkF(createQueue(
             lenfm(Q) + lenr(Q),
             front(Q),
-            snoc(Util.lazy(() => List.reverse(rear(Q))), collection(Q)),
+            snoc(collection(Q), Util.lazy(() => List.reverse(rear(Q)))),
             0,
             List.EmptyList)));
 
@@ -61,7 +61,7 @@ export namespace BootstrappedQueue {
                 rear(Q))
         : Q));
 
-    export const snoc = <T>(x: T, Q: Queue<T>): Queue<T> =>
+    export const snoc = <T>(Q: Queue<T>, x: T): Queue<T> =>
         (isEmpty(Q) ?
             createQueue(
                 1,

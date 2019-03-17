@@ -40,7 +40,7 @@ export namespace BankersQueue {
             0,
             Stream.EmptyStream)));
 
-    export const snoc = <T>(e: T, Q: Queue<T>): Queue<T> =>
+    export const snoc = <T>(Q: Queue<T>, e: T): Queue<T> =>
         check(createQueue(
             fLen(Q),
             front(Q),

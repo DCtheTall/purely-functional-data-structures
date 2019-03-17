@@ -198,7 +198,7 @@ export namespace HoodMelvilleQueue {
             front(Q),
             queueState(Q),
             rearLen(Q) + 1,
-            rear(Q)));
+            List.cons(x, rear(Q))));
 
     export const head = <T>(Q: Queue<T>): T =>
         (List.isEmpty(front(Q)) ?

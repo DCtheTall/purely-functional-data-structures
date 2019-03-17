@@ -28,7 +28,7 @@ export namespace CatenableList {
     export const isEmpty = (C: Cat<any>) => (C === EmptyCat);
 
     const link = <T>(A: Cat<T>, B: Util.Suspension<Cat<T>>): Cat<T> =>
-        createCat(valueof(A), RealTimeQueue.snoc(B, queue(A)));
+        createCat(valueof(A), RealTimeQueue.snoc(queue(A), B));
 
     const linkAll = <T>(Q: SuspendedCatQueue<T>): Cat<T> =>
         (RealTimeQueue.isEmpty(RealTimeQueue.tail(Q)) ?
@@ -45,7 +45,7 @@ export namespace CatenableList {
     export const cons = <T>(x: T, C: Cat<T>): Cat<T> =>
         concat(createCat(x, RealTimeQueue.EmptyQueue), C);
 
-    export const snoc = <T>(x: T, C: Cat<T>): Cat<T> =>
+    export const snoc = <T>(C: Cat<T>, x: T): Cat<T> =>
         concat(C, createCat(x, RealTimeQueue.EmptyQueue));
 
     export const head = <T>(C: Cat<T>): T =>

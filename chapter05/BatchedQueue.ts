@@ -34,7 +34,7 @@ namespace BatchedQueue {
         : Q);
 
     // "cons" backwards since we add to the "back" of the queue
-    export const snoc = <T>(e: T, Q: Queue<T>): Queue<T> =>
+    export const snoc = <T>(Q: Queue<T>, e: T): Queue<T> =>
         check(createQueue(left(Q), List.cons(e, right(Q))));
 
     export const head = <T>(Q: Queue<T>): T =>

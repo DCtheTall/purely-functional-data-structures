@@ -114,7 +114,7 @@ export namespace RealTimeDeque {
             rear(D),
             exec2(rearSched(D))))));
 
-    export const snoc = <T>(x: T, D: Deque<T>): Deque<T> =>
+    export const snoc = <T>(D: Deque<T>, x: T): Deque<T> =>
         check(createDeque(
             frontLen(D),
             front(D),

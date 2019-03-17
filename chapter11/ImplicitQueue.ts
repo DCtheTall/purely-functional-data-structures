@@ -65,7 +65,8 @@ export namespace ImplicitQueue {
 
     const front = <T>(Q: Queue<T>) => <Digit<T>>Q((l, d) => d);
 
-    const queue = <T>(Q: Queue<T>) => <Util.Suspension<Queue<Tuple<T>>>>Q((l, d, qs, r) => qs);
+    const middle = <T>(Q: Queue<T>) =>
+        (<Util.Suspension<Queue<Tuple<T>>>>Q((l, d, qs, r) => qs));
 
     const rear = <T>(Q: Queue<T>) => <Digit<T>>Q((l, d, qs, r) => r);
 
@@ -91,12 +92,12 @@ export namespace ImplicitQueue {
         : (isZero(rear(Q)) ?
             createDeep(
                 front(Q),
-                queue(Q),
+                middle(Q),
                 createOne(y))
         : createDeep(
             front(Q),
             Util.lazy(() => snoc(
-                Util.force(queue(Q)),
+                Util.force(middle(Q)),
                 createTuple(digitValue(rear(Q)), y))),
             createZero()))));
 
@@ -115,14 +116,14 @@ export namespace ImplicitQueue {
         if (isTwo(front(Q)))
             return createDeep(
                 createOne(second(<Tuple<T>>digitValue(front(Q)))),
-                queue(Q),
+                middle(Q),
                 rear(Q));
-        if (isEmpty(Util.force(queue(Q))))
+        if (isEmpty(Util.force(middle(Q))))
             return createShallow(rear(Q));
-        let yz = head(Util.force(queue(Q)));
+        let yz = head(Util.force(middle(Q)));
         return createDeep(
             createTwo(first(yz), second(yz)),
-            Util.lazy(() => tail(Util.force(queue(Q)))),
+            Util.lazy(() => tail(Util.force(middle(Q)))),
             rear(Q));
     };
 }
