@@ -1,0 +1,30 @@
+{
+  "name": "purely-functional-data-structures",
+  "version": "0.0.0",
+  "description": "Functional, persistent data structures",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DCtheTall/purely-functional-data-structures.git"
+  },
+  "keywords": [
+    "functional",
+    "data-structures",
+    "pure",
+    "function",
+    "lambda",
+    "functional-programming"
+  ],
+  "author": "Dylan Cutler",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/DCtheTall/purely-functional-data-structures/issues"
+  },
+  "homepage": "https://github.com/DCtheTall/purely-functional-data-structures#readme",
+  "dependencies": {
+    "tallstack": "^0.1.3"
+  }
+}

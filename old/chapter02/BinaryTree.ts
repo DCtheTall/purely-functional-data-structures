@@ -35,7 +35,7 @@ export namespace BinaryTree {
         (<Node<S>>T((l: Node<S>, v: S, r: Node<S>) => r));
 
     export const member = <S>(x: S, T: Node<S>): boolean =>
-        (isEmpty(T) &&
+        (!isEmpty(T) &&
             (x < valueof(T) ?
                 member(x, left(T))
             : (x > valueof(T) ?
