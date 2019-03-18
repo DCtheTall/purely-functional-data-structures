@@ -10,7 +10,6 @@ Copyright 2019 Google Inc.
 
 */
 
-import { recursive, call } from 'tallstack';
 import {
   BinaryTree,
   isEmpty as isEmptyTree,
@@ -33,33 +32,31 @@ export const EmptyMap = EmptyTree;
 
 export const isEmpty = isEmptyTree;
 
-export const lookup = recursive(
+export const lookup =
   <S, T>(M: Map<S, T>, k: S): T =>
     (isEmpty(M) ?
       raise('NotFound')
     : (less(k, M.value.key) ?
-      <T>call(lookup, M.left, k)
+      lookup(M.left, k)
     : (greater(k, M.value.key) ?
-      <T>call(lookup, M.right, k)
-    : M.value.value))));
+      lookup(M.right, k)
+    : M.value.value)));
 
-export const bind = recursive(
+export const bind =
   <S, T>(k: S, val: Text, M: Map<S, T>): Map<S, T> =>
     (isEmpty(M) ?
       new BinaryTree(new MapElem(k, val), EmptyMap, EmptyMap)
     : (less(k, M.value.key) ?
-      call(
-        BinaryTree.create,
+      new BinaryTree(
         M.value,
-        call(bind, k, val, M.left),
+        bind(k, val, M.left),
         M.right)
     : (greater(k, M.value.key) ?
-      call(
-        BinaryTree.create,
+      new BinaryTree(
         M.value,
         M.left,
-        call(bind, k, val, M.right))
+        bind(k, val, M.right))
     : new BinaryTree(
       new MapElem(k, val),
       EmptyMap,
-      EmptyMap)))));
+      EmptyMap))));
