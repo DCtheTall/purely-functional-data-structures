@@ -45,7 +45,7 @@ export namespace LazyPairingHeap {
         : createHeap(
             findMin(A),
             EmptyHeap,
-            Util.lazy(() =>
+            Util.$(() =>
                 merge(merge(oddField(A), B), Util.force(children(A))))));
 
     export const deleteMin = <T>(H: Heap<T>) =>

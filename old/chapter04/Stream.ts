@@ -16,7 +16,7 @@ export namespace Stream {
 
     const EmptyCell: StreamCell<any> = null;
 
-    export const EmptyStream: Stream<any> = Util.lazy(() => EmptyCell);
+    export const EmptyStream: Stream<any> = Util.$(() => EmptyCell);
 
     export const isEmpty = <T>(S: Stream<T>) => (Util.force(S) === EmptyCell);
 
@@ -33,11 +33,11 @@ export namespace Stream {
     };
 
     export const cons = <T>(e: T, S: Stream<T>): Stream<T> =>
-        Util.lazy(() => <StreamCell<T>>((f: Selector<T>) => f(e, S)));
+        Util.$(() => <StreamCell<T>>((f: Selector<T>) => f(e, S)));
 
     // Concat two streams
     export const concat = <T>(A: Stream<T>, B: Stream<T>): Stream<T> =>
-        Util.lazy<StreamCell<T>>(() => {
+        Util.$<StreamCell<T>>(() => {
             let helper = (A: Stream<T>, B: Stream<T>): Stream<T> =>
                 (isEmpty(A) ? B
                 : cons(head(A), concat(tail(A), B)));
@@ -46,7 +46,7 @@ export namespace Stream {
 
     // Take the first n elements in the stream
     export const take = <T>(n: number, s: Stream<T>): Stream<T> =>
-        Util.lazy<StreamCell<T>>(() => {
+        Util.$<StreamCell<T>>(() => {
             let helper = (n: number, s: Stream<T>): Stream<T> =>
                 (isEmpty(s) ? EmptyStream
                 : (n === 0 ? EmptyStream
@@ -56,7 +56,7 @@ export namespace Stream {
 
     // Drop the first n elements in the stream
     export const drop = <T>(n: number, s: Stream<T>): Stream<T> =>
-        Util.lazy<StreamCell<T>>(() => {
+        Util.$<StreamCell<T>>(() => {
             let helper = (n: number, s: Stream<T>): Stream<T> =>
                 (isEmpty(s) ? EmptyStream
                 : (n === 0 ? s
@@ -66,7 +66,7 @@ export namespace Stream {
 
     // 2nd implementation of drop using a helper function
     export const drop2 = <T>(n: number, s: Stream<T>): Stream<T> =>
-        Util.lazy<StreamCell<T>>(() => {
+        Util.$<StreamCell<T>>(() => {
             let dropHelper = (n: number, s: Stream<T>): Stream<T> =>
                 (isEmpty(s) ? EmptyStream
                 : (n === 0 ? s
@@ -77,7 +77,7 @@ export namespace Stream {
     // Solution to exercise 4.2
     // Return the first k unique least elements in the stream
     export const sort = <T>(k: number, s: Stream<T>): Stream<T> =>
-        Util.lazy<StreamCell<T>>(() => {
+        Util.$<StreamCell<T>>(() => {
             let findMinAboveLowerBound = (s: Stream<T>, lb: T, cur: T) =>
                 (s === EmptyStream ? cur
                 : (cur === null ?
@@ -99,7 +99,7 @@ export namespace Stream {
 
     // Reverse a stream lazily in O(n) operations
     export const reverse = <T>(S: Stream<T>): Stream<T> =>
-        Util.lazy<StreamCell<T>>(() => {
+        Util.$<StreamCell<T>>(() => {
             let reverseHelper = (L: Stream<T>, R: Stream<T>): Stream<T> =>
                 (isEmpty(R) ? L
                 : reverseHelper(cons(head(R), L), tail(R)));

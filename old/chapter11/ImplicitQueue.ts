@@ -87,7 +87,7 @@ export namespace ImplicitQueue {
         : (isShallow(Q) ?
             createDeep(
                 createTwo(digitValue(front(Q)), y),
-                Util.lazy(() => EmptyQueue),
+                Util.$(() => EmptyQueue),
                 createZero())
         : (isZero(rear(Q)) ?
             createDeep(
@@ -96,7 +96,7 @@ export namespace ImplicitQueue {
                 createOne(y))
         : createDeep(
             front(Q),
-            Util.lazy(() => snoc(
+            Util.$(() => snoc(
                 Util.force(middle(Q)),
                 createTuple(digitValue(rear(Q)), y))),
             createZero()))));
@@ -123,7 +123,7 @@ export namespace ImplicitQueue {
         let yz = head(Util.force(middle(Q)));
         return createDeep(
             createTwo(first(yz), second(yz)),
-            Util.lazy(() => tail(Util.force(middle(Q)))),
+            Util.$(() => tail(Util.force(middle(Q)))),
             rear(Q));
     };
 }

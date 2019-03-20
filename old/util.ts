@@ -31,7 +31,7 @@ export namespace Util {
 
     // Lazy evaluation takes advantage of JS closure and delayed evaluation
     // using abstraction
-    export function lazy<T>(f: Suspension<T>): Suspension<T> {
+    export function $<T>(f: Suspension<T>): Suspension<T> {
         let cached: T = null;
         return () => (cached || (cached = f()));
     };

@@ -20,7 +20,7 @@ export namespace LazyBinomialHeap {
 
     export type Heap<T> = Util.Suspension<TreeList<T>>;
 
-    export const EmptyHeap = Util.lazy(() => List.EmptyList);
+    export const EmptyHeap = Util.$(() => List.EmptyList);
 
     export const isEmpty = <T>(H: Heap<T>) => List.isEmpty(Util.force(H));
 
@@ -57,10 +57,10 @@ export namespace LazyBinomialHeap {
             mrg(List.tail(t1), List.tail(t2)))))));
 
     export const insert = <T>(e: T, h: Heap<T>) =>
-        Util.lazy(() => insTree(createTree(0, e, List.EmptyList), Util.force(h)));
+        Util.$(() => insTree(createTree(0, e, List.EmptyList), Util.force(h)));
 
     export const merge = <T>(h1: Heap<T>, h2: Heap<T>) =>
-        Util.lazy(() => mrg(Util.force(h1), Util.force(h2)));
+        Util.$(() => mrg(Util.force(h1), Util.force(h2)));
 
     const removeMinTree = <T>(t: TreeList<T>): TreeList<T> =>
         (List.isEmpty(t) ?
@@ -79,7 +79,7 @@ export namespace LazyBinomialHeap {
         root(List.head(removeMinTree(Util.force(h))));
 
     export const deleteMin = <T>(h: Heap<T>): Heap<T> =>
-        Util.lazy(() => {
+        Util.$(() => {
             let minTree = removeMinTree(Util.force(h));
             return mrg(List.reverse(
                 children(List.head(minTree))),

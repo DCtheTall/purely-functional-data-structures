@@ -32,7 +32,7 @@ export namespace PhysicistsQueue {
             <Queue<T>>(Q => Q(w, fLen, f, rLen, r));
 
     export const EmptyQueue =
-        <Queue<any>>(Q => Q(List.EmptyList, 0, Util.lazy(() => List.EmptyList), 0, List.EmptyList));
+        <Queue<any>>(Q => Q(List.EmptyList, 0, Util.$(() => List.EmptyList), 0, List.EmptyList));
 
     export const isEmpty = <T>(Q: Queue<T>) => (fLen(Q) === 0);
 
@@ -47,7 +47,7 @@ export namespace PhysicistsQueue {
         : checkw(createQueue(
             Util.force(front(Q)),
             fLen(Q) + rLen(Q),
-            Util.lazy(() => List.concat(Util.force(front(Q)), List.reverse(rear(Q)))),
+            Util.$(() => List.concat(Util.force(front(Q)), List.reverse(rear(Q)))),
             0,
             List.EmptyList)));
 
@@ -70,7 +70,7 @@ export namespace PhysicistsQueue {
         : check(createQueue(
             List.tail(working(Q)),
             fLen(Q) - 1,
-            Util.lazy(() => List.tail(Util.force(front(Q)))),
+            Util.$(() => List.tail(Util.force(front(Q)))),
             rLen(Q),
             rear(Q))));
 }

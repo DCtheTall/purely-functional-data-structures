@@ -86,7 +86,7 @@ export namespace ScheduledBottomUpMergesort {
         };
 
     const mrgAll = <T>(S: Stream.Stream<T>, L: List.List<Segment<T>>): Stream.Stream<T> =>
-        Util.lazy(() => Util.force(
+        Util.$(() => Util.force(
             (List.isEmpty(L) ? S
             : mrgAll(mrg(S, segment(List.head(L))), List.tail(L)))));
 

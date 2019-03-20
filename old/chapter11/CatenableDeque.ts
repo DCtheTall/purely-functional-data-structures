@@ -146,7 +146,7 @@ export namespace CatenableDeque {
                 return createShallow(dappendR(front(C1), front(C2)));
             let [f, m, r] = share(front(C1), front(C2));
             return createDeep(
-                f, Util.lazy(() => EmptyCat), m, Util.lazy(() => EmptyCat), r);
+                f, Util.$(() => EmptyCat), m, Util.$(() => EmptyCat), r);
         }
         if (isShallow(C1)) {
             if (RealTimeDeque.size(front(C1)) < 4)
@@ -158,7 +158,7 @@ export namespace CatenableDeque {
                     rear(C2));
             return createDeep(
                 front(C1),
-                Util.lazy(() => cons(
+                Util.$(() => cons(
                     createSimple(front(C2)),
                     Util.force(cmpdElemA(C2)))),
                 middle(C2),
@@ -177,16 +177,16 @@ export namespace CatenableDeque {
                 front(C1),
                 cmpdElemA(C1),
                 middle(C1),
-                Util.lazy(() => snoc(
+                Util.$(() => snoc(
                     Util.force(cmpdElemB(C1)),
                     createSimple(rear(C1)))),
                 front(C2));
         }
         let [rprime, m, fprime] = share(rear(C1), front(C2));
-        let aprime = Util.lazy(() => snoc(
+        let aprime = Util.$(() => snoc(
             Util.force(cmpdElemA(C1)),
             createCompound(middle(C1), cmpdElemB(C2), rprime)));
-        let bprime = Util.lazy(() => cons(
+        let bprime = Util.$(() => cons(
             createCompound(fprime, cmpdElemA(C2), middle(C2)),
             Util.force(cmpdElemB(C2))));
         return createDeep(front(C1), aprime, m, bprime, rear(C2));
@@ -233,7 +233,7 @@ export namespace CatenableDeque {
                     cmpdFront(head(Util.force(cmpdElemA(C)))));
                 return createDeep(
                     fprime,
-                    Util.lazy(() => tail(Util.force(cmpdElemA(C)))),
+                    Util.$(() => tail(Util.force(cmpdElemA(C)))),
                     middle(C),
                     cmpdElemB(C),
                     rear(C));
@@ -241,7 +241,7 @@ export namespace CatenableDeque {
             let fprime = dappendL(
                 RealTimeDeque.tail(front(C)),
                 cmpdFront(head(Util.force(cmpdElemA(C)))));
-            let aprime = Util.lazy(() => concat(
+            let aprime = Util.$(() => concat(
                 Util.force(cmpdMiddle(head(Util.force(cmpdElemA(C))))),
                 replaceHead(
                     createSimple(cmpdRear(head(Util.force(cmpdElemA(C))))),
@@ -255,22 +255,22 @@ export namespace CatenableDeque {
                     middle(C));
                 return createDeep(
                     fprime,
-                    Util.lazy(() => EmptyCat),
+                    Util.$(() => EmptyCat),
                     cmpdFront(head(Util.force(cmpdElemB(C)))),
-                    Util.lazy(() => tail(Util.force(cmpdElemB(C)))),
+                    Util.$(() => tail(Util.force(cmpdElemB(C)))),
                     rear(C));
             }
             let fprime = dappendL(
                 RealTimeDeque.tail(front(C)),
                 middle(C));
-            let aprime = Util.lazy(() => cons(
+            let aprime = Util.$(() => cons(
                 createSimple(cmpdFront(head(Util.force(cmpdElemB(C))))),
                 Util.force(cmpdMiddle(head(Util.force(cmpdElemB(C)))))));
             return createDeep(
                 fprime,
                 aprime,
                 cmpdRear(head(Util.force(cmpdElemB(C)))),
-                Util.lazy(() => tail(Util.force(cmpdElemB(C)))),
+                Util.$(() => tail(Util.force(cmpdElemB(C)))),
                 rear(C));
         }
         return concat(
@@ -299,13 +299,13 @@ export namespace CatenableDeque {
                     front(C),
                     cmpdElemA(C),
                     middle(C),
-                    Util.lazy(() => init(Util.force(cmpdElemB(C)))),
+                    Util.$(() => init(Util.force(cmpdElemB(C)))),
                     rprime);
             }
             let rprime = dappendR(
                 cmpdRear(last(Util.force(cmpdElemB(C)))),
                 RealTimeDeque.init(rear(C)));
-            let bprime = Util.lazy(() => concat(
+            let bprime = Util.$(() => concat(
                 replaceLast(
                     createSimple(cmpdFront(last(Util.force(cmpdElemB(C))))),
                     Util.force(cmpdElemB(C))),
@@ -319,20 +319,20 @@ export namespace CatenableDeque {
                     RealTimeDeque.init(rear(C)));
                 return createDeep(
                     front(C),
-                    Util.lazy(() => init(Util.force(cmpdElemA(C)))),
+                    Util.$(() => init(Util.force(cmpdElemA(C)))),
                     cmpdFront(last(Util.force(cmpdElemA(C)))),
-                    Util.lazy(() => EmptyCat),
+                    Util.$(() => EmptyCat),
                     rprime);
             }
             let rprime = dappendR(
                 middle(C),
                 RealTimeDeque.init(rear(C)));
-            let bprime = Util.lazy(() => snoc(
+            let bprime = Util.$(() => snoc(
                 Util.force(cmpdMiddle(last(Util.force(cmpdElemA(C))))),
                 createSimple(cmpdRear(last(Util.force(cmpdElemA(C)))))));
             return createDeep(
                 front(C),
-                Util.lazy(() => init(Util.force(cmpdElemA(C)))),
+                Util.$(() => init(Util.force(cmpdElemA(C)))),
                 cmpdRear(last(Util.force(cmpdElemA(C)))),
                 bprime,
                 rprime);

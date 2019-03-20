@@ -24,7 +24,7 @@ export namespace BottomUpMergesort {
     const createSortable = <T>(s: number, L: SuspendedNestedList<T>) =>
         (<Sortable<T>>(S => S(s, L)));
 
-    export const Empty = Util.lazy(() => List.EmptyList);
+    export const Empty = Util.$(() => List.EmptyList);
 
     export const isEmpty = (S: Sortable<any>) => (size(S) === 0);
 
@@ -46,7 +46,7 @@ export namespace BottomUpMergesort {
     export const add = <T>(x: T, S: Sortable<T>): Sortable<T> =>
         createSortable(
             size(S) + 1,
-            Util.lazy(() => addSeg(
+            Util.$(() => addSeg(
                 List.cons(x, List.EmptyList),
                 Util.force(segments(S)),
                 size(S))));

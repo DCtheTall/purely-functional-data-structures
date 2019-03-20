@@ -45,7 +45,7 @@ export namespace BootstrappedQueue {
         : checkF(createQueue(
             lenfm(Q) + lenr(Q),
             front(Q),
-            snoc(collection(Q), Util.lazy(() => List.reverse(rear(Q)))),
+            snoc(collection(Q), Util.$(() => List.reverse(rear(Q)))),
             0,
             List.EmptyList)));
 

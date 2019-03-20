@@ -100,7 +100,7 @@ export namespace SimpleCatenableDeque {
             return createShallow(dappendL(fprime, rear(C)));
         return createDeep(
             dappendL(fprime, head(Util.force(middle(C)))),
-            Util.lazy(() => tail(Util.force(middle(C)))),
+            Util.$(() => tail(Util.force(middle(C)))),
             rear(C));
     };
 
@@ -116,7 +116,7 @@ export namespace SimpleCatenableDeque {
             return createShallow(dappendR(front(C), rprime));
         return createDeep(
             front(C),
-            Util.lazy(() => init(Util.force(middle(C)))),
+            Util.$(() => init(Util.force(middle(C)))),
             dappendR(last(Util.force(middle(C))), rprime));
     };
 
@@ -128,7 +128,7 @@ export namespace SimpleCatenableDeque {
                 createShallow(dappendR(front(C1), front(C2)))
             : createDeep(
                 front(C1),
-                Util.lazy(() => EmptyCat),
+                Util.$(() => EmptyCat),
                 front(C2))))
         : (isShallow(C1) ?
             (tooSmall(front(C1)) ?
@@ -138,7 +138,7 @@ export namespace SimpleCatenableDeque {
                     rear(C2))
             : createDeep(
                 front(C1),
-                Util.lazy(() => cons(front(C2), Util.force(middle(C2)))),
+                Util.$(() => cons(front(C2), Util.force(middle(C2)))),
                 rear(C2)))
         : (isShallow(C2) ?
             (tooSmall(front(C2)) ?
@@ -148,11 +148,11 @@ export namespace SimpleCatenableDeque {
                     dappendR(rear(C1), front(C2)))
             : createDeep(
                 front(C1),
-                Util.lazy(() => snoc(Util.force(middle(C1)), rear(C1))),
+                Util.$(() => snoc(Util.force(middle(C1)), rear(C1))),
                 front(C2)))
         : createDeep(
             front(C1),
-            Util.lazy(() => concat(
+            Util.$(() => concat(
                 snoc(Util.force(middle(C1)), rear(C1)),
                 cons(front(C2), Util.force(middle(C2))))),
             rear(C2)))))

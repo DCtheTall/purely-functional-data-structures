@@ -12,7 +12,7 @@ Copyright 2019 Google Inc.
 
 const UNEVALUATED = Symbol('unevaluated');
 
-class Suspension<T> {
+export class Suspension<T> {
   private cachedResult: T = <any>UNEVALUATED;
 
   constructor(
@@ -27,6 +27,5 @@ class Suspension<T> {
   }
 }
 
-export const lazy =
-  <S extends any[], T>(func: (...args: S) => T) =>
-    (...args: S) => new Suspension(() => func(...args));
+// The $ is taken from the book's SML code.
+export const $ = <T>(expr: () => T) => new Suspension(expr);
