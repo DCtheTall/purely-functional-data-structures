@@ -20,12 +20,6 @@ import { leq, geq, raise } from './util';
 export class Heap<T> extends BinaryTree<T> {
   public readonly left: Heap<T>;
   public readonly right: Heap<T>;
-
-  get min(): T {
-    if (isEmpty(this.left))
-      return this.value;
-    return this.left.min;
-  }
 }
 
 export const EmptyHeap = <Heap<any>>EmptyTree;
@@ -124,6 +118,11 @@ export const partition = <T>(pivot: T, H: Heap<T>): [Heap<T>, Heap<T>] => {
         H.left.right,
         H.right))];
 }
+
+export const findMin = <T>(H: Heap<T>): T =>
+  (isEmpty(H.left) ?
+      H.value
+  : H.left.value);
 
 export const insert = <T>(x: T, H: Heap<T>): Heap<T> => {
   let [first, second] = partition(x, H);

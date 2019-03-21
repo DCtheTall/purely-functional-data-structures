@@ -20,31 +20,30 @@ import { leq } from './util';
 export class Heap<T> extends BinaryTree<T> {
   public readonly left: Heap<T>;
   public readonly right: Heap<T>;
-
-  get min(): T {
-    return this.value;
-  }
 }
 
 export const EmptyHeap = <Heap<any>>EmptyTree;
 
 export const isEmpty = isEmptyTree;
 
+export const findMin = <T>(H: Heap<T>): T =>
+  H.value;
+
 const merge = <T>(A: Heap<T>, B: Heap<T>): Heap<T> =>
   (isEmpty(A) ? B
   : (isEmpty(B) ? A
-  : leq(A.min, B.min) ?
+  : leq(A.value, B.value) ?
     new Heap(
-      A.min,
+      A.value,
       new Heap(
-        B.min,
+        B.value,
         B.left,
         A.left),
       EmptyHeap)
   : new Heap(
-    B.min,
+    B.value,
     new Heap(
-      A.min,
+      A.value,
       A.left,
       B.left),
     EmptyHeap)));
@@ -60,7 +59,7 @@ const mergePairs = <T>(H: Heap<T>): Heap<T> =>
   : merge(
     merge(
       new Heap(
-        H.min,
+        H.value,
         H.left,
         EmptyHeap),
       new Heap(
