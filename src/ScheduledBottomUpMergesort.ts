@@ -94,12 +94,12 @@ export const add = <T>(x: T, S: Sortable<T>): Sortable<T> =>
   new Sortable(
     S.size + 1,
     map(
+      (<(S: Segment<T>) => Segment<T>>exec2),
       addSeg(
         consStream(x, EmptyStream),
         S.segments,
         S.size,
-        EmptyList),
-      exec2));
+        EmptyList)));
 
 export const sort = <T>(S: Sortable<T>): List<T> =>
   streamToList(mrgAll(EmptyStream, S.segments));

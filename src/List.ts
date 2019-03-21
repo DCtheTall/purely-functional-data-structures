@@ -79,6 +79,6 @@ export const reduce =
     : reduce(L.tail, callback, callback(initial, L.head)));
 
 export const map =
-  <S, T>(L: List<T>, callback: (el: T) => S): List<S> =>
+  <S, T>(callback: (el: T) => S, L: List<T>): List<S> =>
     (isEmpty(L) ? EmptyList
-    : cons(callback(L.head), map(L.tail, callback)));
+    : cons(callback(L.head), map(callback, L.tail)));
