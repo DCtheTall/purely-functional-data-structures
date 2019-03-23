@@ -10,11 +10,6 @@ Copyright 2019 Google Inc.
 
 */
 
-import {
-  List,
-  EmptyList,
-  isEmpty as isEmptyList,
-} from './List';
 import { raise } from './util';
 
 class Leaf<T> {
@@ -52,15 +47,15 @@ class One<T> {
 
 type Digit<T> = Zero | One<T>;
 
-export class RList<T> extends List<Digit<T>> {
+export class RList<T> {
   constructor(
     public readonly head_: Digit<T>,
     public readonly tail_: RList<T>,
   ) {
-    super(head_, tail_);
+    Object.freeze(this);
   }
 
-  get head() {
+  get head(): T {
     return (<Leaf<T>>unconsTree(this)[0]).value;
   }
 
@@ -69,35 +64,32 @@ export class RList<T> extends List<Digit<T>> {
   }
 }
 
-const consList = <T>(D: Digit<T>, R: RList<T>): RList<T> =>
-  new RList(D, R);
+export const EmptyRList = <RList<any>>null;
 
-export const EmptyRList = <RList<any>>EmptyList;
-
-export const isEmpty = isEmptyList;
+export const isEmpty = (R: RList<any>) => (R === EmptyRList);
 
 const link = <T>(T1: Tree<T>, T2: Tree<T>): Node<T> =>
   new Node(size(T1) + size(T2), T1, T2);
 
 const consTree = <T>(t: Tree<T>, R: RList<T>): RList<T> =>
   (isEmpty(R) ?
-    consList(t, EmptyRList)
+    new RList(t, EmptyRList)
   : (R.head instanceof Zero ?
-      consList(new One(t), R.tail_)
-  : consList(
+      new RList(new One(t), R.tail_)
+  : new RList(
     new Zero(),
-    consTree(link(t, R.head.tree), R.tail_))));
+    consTree(link(t, (<One<T>>R.head_).tree), R.tail_))));
 
 const unconsTree = <T>(R: RList<T>): [Tree<T>, RList<T>] => {
   if (isEmpty(R))
     raise('EmptyRList');
   if ((!(R.head instanceof Zero)) && isEmpty(R.tail))
-    return [(<Node<T>>R.head.tree), EmptyRList];
+    return [(<One<T>>R.head_).tree, EmptyRList];
   if (!(R.head instanceof Zero))
-    return [(<Node<T>>R.head.tree), consList(new Zero(), R.tail_)];
+    return [(<One<T>>R.head_).tree, new RList(new Zero(), R.tail_)];
   let [first, second] = unconsTree(R.tail_);
   return [(<Node<T>>first).left,
-    consList((<Node<T>>first).right, second)];
+    new RList((<Node<T>>first).right, second)];
 };
 
 export const cons = <T>(x: T, R: RList<T>): RList<T> =>
@@ -117,10 +109,10 @@ export const lookup = <T>(i: number, R: RList<T>): T =>
     raise('Subscript')
   : (R.head instanceof Zero ?
     lookup(i, R.tail)
-  : (i < size(R.head.tree) ?
-    lookupTree(i, R.head.tree)
+  : (i < size((<One<T>>R.head_).tree) ?
+    lookupTree(i, (<One<T>>R.head_).tree)
   : lookup(
-    i - size(R.head.tree),
+    i - size((<One<T>>R.head_).tree),
     R.tail_))));
 
 const updateTree = <T>(i: number, y: T, t: Tree<T>): Tree<T> =>
@@ -139,11 +131,11 @@ export const update = <T>(i: number, y: T, R: RList<T>): RList<T> =>
   (isEmpty(R) ?
     raise('Subscript')
   : (R.head instanceof Zero ?
-    consList(new Zero, update(i, y, R.tail))
-  : (i < size(R.head.tree) ?
-    consList(
-      new One(updateTree(i, y, R.head.tree)),
+    new RList(new Zero, update(i, y, R.tail))
+  : (i < size((<One<T>>R.head_).tree) ?
+    new RList(
+      new One(updateTree(i, y, (<One<T>>R.head_).tree)),
       R.tail)
-  : consList(
+  : new RList(
     R.head,
-    update(i - size(R.head.tree), y, R.tail)))));
+    update(i - size((<One<T>>R.head_).tree), y, R.tail)))));
