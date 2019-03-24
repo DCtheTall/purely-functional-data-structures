@@ -51,11 +51,11 @@ export namespace Trie {
     export const isEmpty = (Tr: Trie) =>
         (isNone(element(Tr)) && FiniteMap.isEmpty(children(Tr)));
 
-    export const lookup = (str: Str, Tr: Trie): Char =>
+    export const lookup = (str: Str, Tr: Trie): Elem =>
         (isNone(element(Tr)) ?
             Util.raise('NotFound')
         : (List.isEmpty(str) ?
-            valueof(element(Tr))
+            element(Tr)
         : lookup(
             List.tail(str),
             FiniteMap.lookup(

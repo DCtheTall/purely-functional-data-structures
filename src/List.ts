@@ -82,3 +82,8 @@ export const map =
   <S, T>(callback: (el: T) => S, L: List<T>): List<S> =>
     (isEmpty(L) ? EmptyList
     : cons(callback(L.head), map(callback, L.tail)));
+
+export const arrayToList = <T>(arr: T[]): List<T> =>
+  arr.reduceRight(
+    (acc: List<T>, x: T) => cons(x, acc),
+    EmptyList);

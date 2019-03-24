@@ -26,14 +26,14 @@ export class MapElem<S, T> {
   }
 }
 
-export type Map<S, T> = BinaryTree<MapElem<S, T>>;
+export type FiniteMap<S, T> = BinaryTree<MapElem<S, T>>;
 
 export const EmptyMap = EmptyTree;
 
 export const isEmpty = isEmptyTree;
 
 export const lookup =
-  <S, T>(M: Map<S, T>, k: S): T =>
+  <S, T>(M: FiniteMap<S, T>, k: S): T =>
     (isEmpty(M) ?
       raise('NotFound')
     : (less(k, M.value.key) ?
@@ -43,7 +43,7 @@ export const lookup =
     : M.value.value)));
 
 export const bind =
-  <S, T>(k: S, val: Text, M: Map<S, T>): Map<S, T> =>
+  <S, T>(k: S, val: T, M: FiniteMap<S, T>): FiniteMap<S, T> =>
     (isEmpty(M) ?
       new BinaryTree(new MapElem(k, val), EmptyMap, EmptyMap)
     : (less(k, M.value.key) ?

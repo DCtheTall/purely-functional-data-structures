@@ -35,7 +35,11 @@ type Tree<T> = Leaf<T> | Node<T>;
 const size = (N: Tree<any>): number =>
   (N instanceof Leaf ? 1 : N.size);
 
-class Zero {}
+class Zero {
+  constructor() {
+    Object.freeze(this);
+  }
+}
 
 class One<T> {
   constructor(

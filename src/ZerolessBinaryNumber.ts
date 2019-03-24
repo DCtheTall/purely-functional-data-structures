@@ -13,9 +13,17 @@ Copyright 2019 Google Inc.
 import { List, EmptyList, isEmpty, cons } from './List';
 import { raise } from './util';
 
-class One {}
+class One {
+  constructor() {
+    Object.freeze(this);
+  }
+}
 
-class Two {}
+class Two {
+  constructor() {
+    Object.freeze(this);
+  }
+}
 
 type Digit = One | Two;
 

@@ -34,6 +34,8 @@ export type Heap<T> = List<Tree<T>>;
 
 export const EmptyHeap = <Heap<any>>EmptyList;
 
+export const isEmpty = (H: Heap<any>) => (H === EmptyHeap);
+
 const link = <T>(T1: Tree<T>, T2: Tree<T>): Tree<T> =>
   (leq(T1.root, T2.root) ?
     new Tree(
@@ -65,20 +67,20 @@ const skewLink = <T>(x: T, T1: Tree<T>, T2: Tree<T>): Tree<T> => {
 const insTree = <T>(Tr: Tree<T>, H: Heap<T>) =>
   (isEmptyList(H) ?
     cons(Tr, EmptyHeap)
-    : (less(Tr.rank, H.head.rank) ?
-      cons(Tr, H)
-    : cons(link(Tr, H.head), H.tail)));
+  : (less(Tr.rank, H.head.rank) ?
+    cons(Tr, H)
+  : cons(link(Tr, H.head), H.tail)));
 
 const mergeTrees = <T>(H1: Heap<T>, H2: Heap<T>): Heap<T> =>
   (isEmptyList(H1) ?
     H2
-    : (isEmptyList(H2) ?
-      H1
-    : (less(H1.head.rank, H2.head.rank) ?
-      cons(H1.head, mergeTrees(H1.tail, H2))
-    : (less(H2.head.rank, H1.head.rank) ?
-      cons(H2.head, merge(H1, H2.tail))
-    : cons(link(H1.head, H2.head), mergeTrees(H1.tail, H2.tail))))));
+  : (isEmptyList(H2) ?
+    H1
+  : (less(H1.head.rank, H2.head.rank) ?
+    cons(H1.head, mergeTrees(H1.tail, H2))
+  : (less(H2.head.rank, H1.head.rank) ?
+    cons(H2.head, merge(H1, H2.tail))
+  : cons(link(H1.head, H2.head), mergeTrees(H1.tail, H2.tail))))));
 
 const normalize = <T>(H: Heap<T>): Heap<T> =>
   (isEmptyList(H) ?
@@ -86,17 +88,16 @@ const normalize = <T>(H: Heap<T>): Heap<T> =>
     : insTree(H.head, H.tail));
 
 export const insert = <T>(x: T, H: Heap<T>): Heap<T> =>
-  ((isEmptyList(H) ||
-    isEmptyList(H.tail)) ?
+  (isEmptyList(H) || isEmptyList(H.tail) ?
     cons(new Tree(0, x, EmptyList, EmptyHeap), H)
-    : ((!isEmptyList(H.tail)) &&
-      equal(H.head.rank, H.tail.head.rank) ?
-      cons(
-        skewLink(
-          x,
-          H.head,
-          H.tail.head),
-        H.tail.tail)
+  : ((!isEmptyList(H.tail)) &&
+    equal(H.head.rank, H.tail.head.rank) ?
+    cons(
+      skewLink(
+        x,
+        H.head,
+        H.tail.head),
+      H.tail.tail)
     : cons(new Tree(0, x, EmptyList, EmptyHeap), H)));
 
 export const merge = <T>(H1: Heap<T>, H2: Heap<T>): Heap<T> =>

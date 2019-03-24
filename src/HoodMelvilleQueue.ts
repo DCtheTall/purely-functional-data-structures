@@ -14,7 +14,9 @@ import { List, EmptyList, cons, isEmpty as isEmptyList } from './List';
 import { raise } from './util';
 
 class RotationState<T> {
-  constructor() {}
+  constructor() {
+    Object.freeze(this);
+  }
 }
 
 class Idle extends RotationState<any> {
