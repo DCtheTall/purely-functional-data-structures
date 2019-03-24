@@ -1,3 +1,15 @@
+/*
+
+Purely Functional Data Structures
+=================================
+Skew Binomial Heap
+------------------
+
+Author: Dylan Cutler
+Copyright 2019 Google Inc.
+
+*/
+
 import {
   List,
   EmptyList,
