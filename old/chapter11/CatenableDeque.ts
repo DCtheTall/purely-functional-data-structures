@@ -185,7 +185,7 @@ export namespace CatenableDeque {
         let [rprime, m, fprime] = share(rear(C1), front(C2));
         let aprime = Util.$(() => snoc(
             Util.force(cmpdElemA(C1)),
-            createCompound(middle(C1), cmpdElemB(C2), rprime)));
+            createCompound(middle(C1), cmpdElemB(C1), rprime)));
         let bprime = Util.$(() => cons(
             createCompound(fprime, cmpdElemA(C2), middle(C2)),
             Util.force(cmpdElemB(C2))));
