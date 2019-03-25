@@ -1,5 +1,3 @@
-import { raise } from "./util";
-
 /*
 
 Purely Functional Data Structures
@@ -11,6 +9,8 @@ Author: Dylan Cutler
 Copyright 2019 Google Inc.
 
 */
+
+import { raise } from "./util";
 
 class Zero<T> {
   constructor(

@@ -10,7 +10,14 @@ Copyright 2019 Google Inc.
 
 */
 
-import { Stream, EmptyStream, isEmpty as isEmptyStream, concat, reverse, cons } from './Stream';
+import {
+  Stream,
+  EmptyStream,
+  isEmpty as isEmptyStream,
+  concat,
+  reverse,
+  cons,
+} from './Stream';
 import { raise } from './util';
 
 export class Queue<T> {
