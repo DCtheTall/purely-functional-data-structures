@@ -73,7 +73,7 @@ const lookupStr = <T>(s: Str, t: Trie<T>): T =>
 export const lookup = <T>(s: string, t: Trie<T>): T =>
   lookupStr(stringToStr(s), t);
 
-export const bindStr = <T>(s: Str, x: T, t: Trie<T>): Trie<T> => {
+const bindStr = <T>(s: Str, x: T, t: Trie<T>): Trie<T> => {
   if (isEmptyList(s))
     new Trie(new Some(x), t.children);
   let tprime: Trie<T>;
@@ -86,4 +86,7 @@ export const bindStr = <T>(s: Str, x: T, t: Trie<T>): Trie<T> => {
   return new Trie(
     t.element,
     bindMap(s.head, tpprime, t.children));
+  
+export const bind = <T>(s: string, t: Trie<T>) =>
+  bindStr(stringToStr(s), t);
 };
