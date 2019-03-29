@@ -43,7 +43,7 @@ Even with persistence, some data structures (such as the `RealTimeQueue`, `RealT
 
 ### Installation
 
-For now, in order to use this in a TypeScript app, you should clone the repository into your app. For now this package is not on npm since it has no `"main"` field in its `package.json`.
+For now, in order to use this in a TypeScript app, you should clone the repository at its latest release into your app. For now this package is not on npm since it has no `"main"` field in its `package.json`.
 
 ### Comparable types
 
