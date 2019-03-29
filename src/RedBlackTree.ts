@@ -10,11 +10,11 @@ Copyright 2019 Google Inc.
 
 */
 
-import { less, greater } from './util';
+import { less, greater, Comparable } from './util';
 
 enum Color { RED, BLACK };
 
-export class RedBlackTree<T> {
+export class RedBlackTree<T extends Comparable> {
   constructor(
     public readonly color: Color,
     public readonly value: T,
@@ -32,7 +32,7 @@ export const isEmpty = (R: RedBlackTree<any>) => (R === EmptyTree);
 const color = (R: RedBlackTree<any>): Color =>
   (isEmpty(R) ? Color.BLACK : R.color);
 
-export const member = <T>(x: T, R: RedBlackTree<T>): boolean =>
+export const member = <T extends Comparable>(x: T, R: RedBlackTree<T>): boolean =>
   (isEmpty(R) ?
     false
   : (less(x, R.value) ?
@@ -42,7 +42,8 @@ export const member = <T>(x: T, R: RedBlackTree<T>): boolean =>
   : true)));
 
 const balance =
-  <T>(col: Color, x: T, left: RedBlackTree<T>, right: RedBlackTree<T>): RedBlackTree<T> =>
+  <T extends Comparable>(col: Color, x: T, left: RedBlackTree<T>,
+    right: RedBlackTree<T>): RedBlackTree<T> =>
       (col === Color.RED ?
         new RedBlackTree(Color.RED, x, left, right)
       : (color(left) === Color.RED ?
@@ -99,7 +100,7 @@ const balance =
         : new RedBlackTree(Color.BLACK, x, left, right)))
       : new RedBlackTree(Color.BLACK, x, left, right))));
 
-const ins = <T>(x: T, R: RedBlackTree<T>): RedBlackTree<T> =>
+const ins = <T extends Comparable>(x: T, R: RedBlackTree<T>): RedBlackTree<T> =>
   (isEmpty(R) ?
     new RedBlackTree(Color.RED, x, EmptyTree, EmptyTree)
   : (less(x, R.value) ?
@@ -108,7 +109,7 @@ const ins = <T>(x: T, R: RedBlackTree<T>): RedBlackTree<T> =>
     balance(color(R), R.value, R.left, ins(x, R.right))
   : R)));
 
-export const insert = <T>(x: T, R: RedBlackTree<T>): RedBlackTree<T> => {
+export const insert = <T extends Comparable>(x: T, R: RedBlackTree<T>): RedBlackTree<T> => {
   let tmp = ins(x, R);
   return balance(Color.BLACK, tmp.value, tmp.left, tmp.right);
-}
+};

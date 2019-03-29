@@ -10,7 +10,7 @@ Copyright 2019 Google Inc.
 
 */
 
-import { Suspension, $, greater } from './util';
+import { Suspension, $, greater, Comparable } from './util';
 import { List, EmptyList, isEmpty as isEmptyList, cons as consList } from './List';
 
 class StreamCell<T> {
@@ -49,7 +49,7 @@ export const drop = <T>(n: number, S: Stream<T>): Stream<T> =>
     (n === 0 ? S
     : drop(n - 1, S)).force());
 
-export const sort = <T>(k: number, S: Stream<T>): Stream<T> =>
+export const sort = <T extends Comparable>(k: number, S: Stream<T>): Stream<T> =>
   $(() => {
     let findMinAboveLowerBound = (S: Stream<T>, lb: T, cur: T) =>
       (S === EmptyStream ? cur

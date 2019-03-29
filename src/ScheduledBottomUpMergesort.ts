@@ -25,11 +25,11 @@ import {
   EmptyStream,
   streamToList,
  } from './Stream';
-import { leq, $ } from './util';
+import { leq, $, Comparable } from './util';
 
-type Schedule<T> = List<Stream<T>>;
+type Schedule<T extends Comparable> = List<Stream<T>>;
 
-const exec1 = <T>(schedule: Schedule<T>): Schedule<T> =>
+const exec1 = <T extends Comparable>(schedule: Schedule<T>): Schedule<T> =>
   (isEmptyList(schedule) ?
     EmptyList
   : (isEmptyStream(schedule.head) ?
@@ -38,7 +38,7 @@ const exec1 = <T>(schedule: Schedule<T>): Schedule<T> =>
     schedule.head.force().tail,
     schedule.tail)));
 
-class Segment<T> {
+class Segment<T extends Comparable> {
   constructor(
     public readonly stream: Stream<T>,
     public readonly schedule: Schedule<T>,
@@ -47,10 +47,10 @@ class Segment<T> {
   }
 }
 
-const exec2 = <T>(seg: Segment<T>): Segment<T> =>
+const exec2 = <T extends Comparable>(seg: Segment<T>): Segment<T> =>
   new Segment(seg.stream, exec1(exec1(seg.schedule)));
 
-export class Sortable<T> {
+export class Sortable<T extends Comparable> {
   constructor(
     public readonly size: number,
     public readonly segments: List<Segment<T>>,
@@ -63,7 +63,7 @@ export const EmptySortable = new Sortable(0, EmptyList);
 
 export const isEmpty = (S: Sortable<any>) => (S.size === 0);
 
-const mrg = <T>(A: Stream<T>, B: Stream<T>): Stream<T> =>
+const mrg = <T extends Comparable>(A: Stream<T>, B: Stream<T>): Stream<T> =>
   (isEmptyStream(A) ? B
   : (isEmptyStream(B) ? A
   : (leq(A.force().head, B.force().head) ?
@@ -71,7 +71,7 @@ const mrg = <T>(A: Stream<T>, B: Stream<T>): Stream<T> =>
   : consStream(B.force().head, mrg(A, B.force().tail)))));
 
 const addSeg =
-  <T>(xs: Stream<T>, segs: List<Segment<T>>, size: number,
+  <T extends Comparable>(xs: Stream<T>, segs: List<Segment<T>>, size: number,
     rearsched: Schedule<T>): List<Segment<T>> => {
       if ((size & 1) === 0)
         return consList(
@@ -85,12 +85,12 @@ const addSeg =
         consList(val, rearsched));
     };
 
-const mrgAll = <T>(S: Stream<T>, L: List<Segment<T>>): Stream<T> =>
+const mrgAll = <T extends Comparable>(S: Stream<T>, L: List<Segment<T>>): Stream<T> =>
   $(() =>
     (isEmptyList(L) ? S
     : mrgAll(mrg(S, L.head.stream), L.tail)).force());
 
-export const add = <T>(x: T, S: Sortable<T>): Sortable<T> =>
+export const add = <T extends Comparable>(x: T, S: Sortable<T>): Sortable<T> =>
   new Sortable(
     S.size + 1,
     map(
@@ -101,5 +101,5 @@ export const add = <T>(x: T, S: Sortable<T>): Sortable<T> =>
         S.size,
         EmptyList)));
 
-export const sort = <T>(S: Sortable<T>): List<T> =>
+export const sort = <T extends Comparable>(S: Sortable<T>): List<T> =>
   streamToList(mrgAll(EmptyStream, S.segments));

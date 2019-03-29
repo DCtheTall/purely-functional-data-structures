@@ -15,9 +15,9 @@ import {
     EmptyTree,
     isEmpty as isEmptyTree,
 } from './BinaryTree';
-import { leq, geq, raise } from './util';
+import { leq, geq, raise, Comparable } from './util';
 
-export class Heap<T> extends BinaryTree<T> {
+export class Heap<T extends Comparable> extends BinaryTree<T> {
   public readonly left: Heap<T>;
   public readonly right: Heap<T>;
 }
@@ -26,7 +26,7 @@ export const EmptyHeap = <Heap<any>>EmptyTree;
 
 export const isEmpty = isEmptyTree;
 
-const bigger = <T>(pivot: T, H: Heap<T>): Heap<T> =>
+const bigger = <T extends Comparable>(pivot: T, H: Heap<T>): Heap<T> =>
   (isEmpty(H) ?
     EmptyHeap
   : (leq(pivot, H.value) ?
@@ -46,7 +46,7 @@ const bigger = <T>(pivot: T, H: Heap<T>): Heap<T> =>
       bigger(pivot, H.left.right),
       H.right))))));
 
-export const smaller = <T>(pivot: T, H: Heap<T>): Heap<T> =>
+export const smaller = <T extends Comparable>(pivot: T, H: Heap<T>): Heap<T> =>
   (isEmpty(H) ?
     EmptyHeap
   : (geq(pivot, H.value) ?
@@ -64,7 +64,7 @@ export const smaller = <T>(pivot: T, H: Heap<T>): Heap<T> =>
       smaller(pivot, H.right.left)),
     smaller(pivot, H.right.right)))));
 
-export const partition = <T>(pivot: T, H: Heap<T>): [Heap<T>, Heap<T>] => {
+export const partition = <T extends Comparable>(pivot: T, H: Heap<T>): [Heap<T>, Heap<T>] => {
   if (isEmpty(H))
     return [EmptyHeap, EmptyHeap];
   if (leq(H.value, pivot)) {
@@ -119,17 +119,17 @@ export const partition = <T>(pivot: T, H: Heap<T>): [Heap<T>, Heap<T>] => {
         H.right))];
 }
 
-export const findMin = <T>(H: Heap<T>): T =>
+export const findMin = <T extends Comparable>(H: Heap<T>): T =>
   (isEmpty(H.left) ?
       H.value
   : H.left.value);
 
-export const insert = <T>(x: T, H: Heap<T>): Heap<T> => {
+export const insert = <T extends Comparable>(x: T, H: Heap<T>): Heap<T> => {
   let [first, second] = partition(x, H);
   return new Heap(x, first, second);
 }
 
-export const merge = <T>(A: Heap<T>, B: Heap<T>): Heap<T> => {
+export const merge = <T extends Comparable>(A: Heap<T>, B: Heap<T>): Heap<T> => {
   if (isEmpty(A)) return B;
   let [first, second] = partition(A.value, B);
   return new Heap(
@@ -138,7 +138,7 @@ export const merge = <T>(A: Heap<T>, B: Heap<T>): Heap<T> => {
     merge(second, A.right));
 }
 
-export const deleteMin = <T>(H: Heap<T>): Heap<T> =>
+export const deleteMin = <T extends Comparable>(H: Heap<T>): Heap<T> =>
   (isEmpty(H) ?
     raise('EmptyHeap')
   : (isEmpty(H.left) ?

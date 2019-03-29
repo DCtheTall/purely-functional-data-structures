@@ -21,11 +21,11 @@ import {
 } from './SkewBinomialHeap';
 import {
 } from './List';
-import { less, equal, leq } from './util';
+import { less, equal, leq, Comparable } from './util';
 
-type PrimHeap<T> = SkewBinomialHeap<Heap<T>>
+type PrimHeap<T extends Comparable> = SkewBinomialHeap<Heap<T>>
 
-export class Heap<T> {
+export class Heap<T extends Comparable> {
   constructor(
     public readonly min: T,
     public readonly heap: PrimHeap<T>,
@@ -37,7 +37,7 @@ export class Heap<T> {
     return less(this.min, h.min);
   }
 
-  public equal(h: Heap<T>): boolean {
+  public equals(h: Heap<T>): boolean {
     return equal(this.min, h.min);
   }
 }
@@ -46,10 +46,7 @@ export const EmptyHeap = <Heap<any>>null;
 
 export const isEmptyHeap = (H: Heap<any>) => (H === EmptyHeap);
 
-export const merge = <T>(
-    H1: Heap<T>,
-    H2: Heap<T>,
-): Heap<T> =>
+export const merge = <T extends Comparable>(H1: Heap<T>, H2: Heap<T>): Heap<T> =>
   (isEmptyHeap(H1) ?
     H2
   : (isEmptyHeap(H2) ?
@@ -62,16 +59,16 @@ export const merge = <T>(
     H2.min,
     skewHeapInsert(H1, H2.heap)))));
 
-export const insert = <T>(x: T, H: Heap<T>): Heap<T> =>
+export const insert = <T extends Comparable>(x: T, H: Heap<T>): Heap<T> =>
     merge(H, new Heap(x, EmptySkewHeap));
 
-export const findMin = <T>(H: Heap<T>): T => {
+export const findMin = <T extends Comparable>(H: Heap<T>): T => {
   if (isEmptyHeap(H))
     throw new Error('EmptyHeap');
   return H.min;
 };
 
-export const deleteMin = <T>(H: Heap<T>): Heap <T> => {
+export const deleteMin = <T extends Comparable>(H: Heap<T>): Heap <T> => {
   if(isEmptyHeap(H))
     throw new Error('EmptyHeap');
   if (isEmptySkewHeap(H.heap))

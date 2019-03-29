@@ -15,9 +15,9 @@ import {
     EmptyTree,
     isEmpty as isEmptyTree,
 } from './BinaryTree';
-import { leq } from './util';
+import { leq, Comparable } from './util';
 
-export class Heap<T> extends BinaryTree<T> {
+export class Heap<T extends Comparable> extends BinaryTree<T> {
   public readonly left: Heap<T>;
   public readonly right: Heap<T>;
 }
@@ -26,10 +26,10 @@ export const EmptyHeap = <Heap<any>>EmptyTree;
 
 export const isEmpty = isEmptyTree;
 
-export const findMin = <T>(H: Heap<T>): T =>
+export const findMin = <T extends Comparable>(H: Heap<T>): T =>
   H.value;
 
-const merge = <T>(A: Heap<T>, B: Heap<T>): Heap<T> =>
+const merge = <T extends Comparable>(A: Heap<T>, B: Heap<T>): Heap<T> =>
   (isEmpty(A) ? B
   : (isEmpty(B) ? A
   : leq(A.value, B.value) ?
@@ -48,10 +48,10 @@ const merge = <T>(A: Heap<T>, B: Heap<T>): Heap<T> =>
       B.left),
     EmptyHeap)));
 
-export const insert = <T>(x: T, H: Heap<T>): Heap<T> =>
+export const insert = <T extends Comparable>(x: T, H: Heap<T>): Heap<T> =>
   merge(new Heap(x, EmptyHeap, EmptyHeap), H);
 
-const mergePairs = <T>(H: Heap<T>): Heap<T> =>
+const mergePairs = <T extends Comparable>(H: Heap<T>): Heap<T> =>
   (isEmpty(H) ?
     EmptyHeap
   : (isEmpty(H.right) ?
@@ -68,5 +68,5 @@ const mergePairs = <T>(H: Heap<T>): Heap<T> =>
         EmptyHeap)),
     mergePairs(H.right.right))));
 
-export const deleteMin = <T>(H: Heap<T>): Heap<T> =>
+export const deleteMin = <T extends Comparable>(H: Heap<T>): Heap<T> =>
   mergePairs(H.left);

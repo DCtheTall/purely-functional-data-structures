@@ -86,7 +86,7 @@ const bindStr = <T>(s: Str, x: T, t: Trie<T>): Trie<T> => {
   return new Trie(
     t.element,
     bindMap(s.head, tpprime, t.children));
-  
-export const bind = <T>(s: string, t: Trie<T>) =>
-  bindStr(stringToStr(s), t);
 };
+
+export const bind = <T>(s: string, x: T, t: Trie<T>) =>
+  bindStr(stringToStr(s), x, t);

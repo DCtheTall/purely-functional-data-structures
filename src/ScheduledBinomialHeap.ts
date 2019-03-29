@@ -23,9 +23,9 @@ import {
   EmptyStream,
   listToStream,
 } from './Stream';
-import { leq, raise } from './util';
+import { leq, raise, Comparable } from './util';
 
-class Tree<T> {
+class Tree<T extends Comparable> {
   constructor(
     public readonly value: T,
     public readonly children: List<Tree<T>>,
@@ -34,18 +34,18 @@ class Tree<T> {
   }
 }
 
-const link = <T>(A: Tree<T>, B: Tree<T>): Tree<T> =>
+const link = <T extends Comparable>(A: Tree<T>, B: Tree<T>): Tree<T> =>
   (leq(A.value, B.value) ?
     new Tree(A.value, consList(B, A.children))
   : new Tree(B.value, consList(A, B.children)));
 
-type Digit<T> = 'ZERO' | Tree<T>;
+type Digit<T extends Comparable> = 'ZERO' | Tree<T>;
 
 const ZERO = 'ZERO';
 
 const isZero = (D: Digit<any>) => (D === ZERO);
 
-const insTree = <T>(D: Tree<T>, ds: Stream<Digit<T>>): Stream<Digit<T>> =>
+const insTree = <T extends Comparable>(D: Tree<T>, ds: Stream<Digit<T>>): Stream<Digit<T>> =>
   (isEmptyStream(ds) ?
     consStream(D, EmptyStream)
   : (isZero(ds.force().head) ?
@@ -56,7 +56,7 @@ const insTree = <T>(D: Tree<T>, ds: Stream<Digit<T>>): Stream<Digit<T>> =>
       link(D, <Tree<T>>ds.force().head),
       ds.force().tail))));
 
-const mrg = <T>(A: Stream<Digit<T>>, B: Stream<Digit<T>>): Stream<Digit<T>> =>
+const mrg = <T extends Comparable>(A: Stream<Digit<T>>, B: Stream<Digit<T>>): Stream<Digit<T>> =>
   (isEmptyStream(A) ? B
   : (isEmptyStream(B) ? A
   : (isZero(A.force().head) ?
@@ -73,12 +73,12 @@ const mrg = <T>(A: Stream<Digit<T>>, B: Stream<Digit<T>>): Stream<Digit<T>> =>
       link(<Tree<T>>A.force().head, <Tree<T>>B.force().head),
       mrg(A.force().tail, B.force().tail)))))));
 
-const normalize = <T>(ds: Stream<Digit<T>>): Stream<Digit<T>> =>
+const normalize = <T extends Comparable>(ds: Stream<Digit<T>>): Stream<Digit<T>> =>
   (!isEmptyStream(ds) ?
     normalize(ds.force().tail)
   : ds);
 
-const removeMinTree = <T>(ds: Stream<Digit<T>>): [Tree<T>, Stream<Digit<T>>] => {
+const removeMinTree = <T extends Comparable>(ds: Stream<Digit<T>>): [Tree<T>, Stream<Digit<T>>] => {
   if (isEmptyStream(ds))
     raise('EmptyStream')
   if (isEmptyStream(ds.force().tail) && !isZero(ds.force().head))
@@ -93,9 +93,9 @@ const removeMinTree = <T>(ds: Stream<Digit<T>>): [Tree<T>, Stream<Digit<T>>] => 
     consStream(ds.force().head, rest)];
 };
 
-type Schedule<T> = List<Stream<Digit<T>>>;
+type Schedule<T extends Comparable> = List<Stream<Digit<T>>>;
 
-export class Heap<T> {
+export class Heap<T extends Comparable> {
   constructor(
     public readonly digits: Stream<Digit<T>>,
     public readonly schedule: Schedule<T>,
@@ -104,7 +104,7 @@ export class Heap<T> {
   }
 }
 
-const exec = <T>(schedule: Schedule<T>): Schedule<T> =>
+const exec = <T extends Comparable>(schedule: Schedule<T>): Schedule<T> =>
   (isEmptyList(schedule) ?
     EmptyList
   : (isZero(schedule.head.force().head) ?
@@ -115,17 +115,17 @@ export const EmptyHeap = new Heap(EmptyStream, EmptyList);
 
 export const isEmpty = (H: Heap<any>) => isEmptyStream(H.digits);
 
-export const insert = <T>(x: T, H: Heap<T>): Heap<T> => {
+export const insert = <T extends Comparable>(x: T, H: Heap<T>): Heap<T> => {
   let ds = insTree(new Tree(x, EmptyList), H.digits);
   return new Heap(ds, exec(exec(consList(ds, H.schedule))));
 };
 
-export const findMin = <T>(H: Heap<T>) =>
+export const findMin = <T extends Comparable>(H: Heap<T>) =>
   (isEmpty(H) ?
     raise('EmptyHeap')
   : removeMinTree(H.digits)[0].value);
 
-export const deleteMin = <T>(H: Heap<T>): Heap<T> => {
+export const deleteMin = <T extends Comparable>(H: Heap<T>): Heap<T> => {
   let [minTree, rest] = removeMinTree(H.digits);
   return new Heap(
     normalize(mrg(

@@ -10,9 +10,9 @@ Copyright 2019 Google Inc.
 
 */
 
-import { Suspension, $, leq, raise } from './util';
+import { Suspension, $, leq, raise, Comparable } from './util';
 
-export class Heap<T> {
+export class Heap<T extends Comparable> {
   constructor(
     public readonly min: T,
     public readonly odd: Heap<T>,
@@ -26,14 +26,14 @@ export const EmptyHeap = <Heap<any>>null;
 
 export const isEmpty = (H: Heap<any>) => (H === EmptyHeap);
 
-const merge = <T>(A: Heap<T>, B: Heap<T>): Heap<T> =>
+const merge = <T extends Comparable>(A: Heap<T>, B: Heap<T>): Heap<T> =>
   (isEmpty(A) ? B
   : (isEmpty(B) ? A
   : (leq(A.min, B.min) ?
     link(A, B)
   : link(B, A))));
 
-const link = <T>(A: Heap<T>, B: Heap<T>): Heap<T> =>
+const link = <T extends Comparable>(A: Heap<T>, B: Heap<T>): Heap<T> =>
   (isEmpty(A.odd) ?
     new Heap(A.min, B, A.children)
   : new Heap(
@@ -41,10 +41,10 @@ const link = <T>(A: Heap<T>, B: Heap<T>): Heap<T> =>
     EmptyHeap,
     $(() => merge(merge(A.odd, B), A.children.force()))));
 
-export const insert = <T>(x: T, H: Heap<T>): Heap<T> =>
+export const insert = <T extends Comparable>(x: T, H: Heap<T>): Heap<T> =>
   merge(new Heap(x, EmptyHeap, $(() => EmptyHeap)), H);
 
-export const deleteMin = <T>(H: Heap<T>): Heap<T> =>
+export const deleteMin = <T extends Comparable>(H: Heap<T>): Heap<T> =>
   (isEmpty(H) ?
     raise('EmptyHeap')
   : merge(H.odd, H.children.force()));
